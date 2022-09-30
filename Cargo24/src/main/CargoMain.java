@@ -113,30 +113,12 @@ public class CargoMain extends JFrame {
 	static HWND ____TEdit5_more_infomation; // 추가정보
 	static HWND ____TMemo; // 화물정보
 
-	static HWND ___TCheckBox_load_now; // 상차일시, 지금
-	static HWND ___TCheckBox_load_30m; // 상차일시, 30분
-	static HWND ___TComboBox_load_hour; // 상차일시, 시간 선택
-	static HWND ____Edit_load_hour; // 상차일시, 시간 edit
-	static HWND ___TComboBox_load_ampm; // 상차일시, 오전 오후 선택
-	static HWND ____Edit_load_ampm; // 상차일시, edit
-	static HWND ___TEdit_load_day; // 상차일시, []일 상차
-	static HWND ___TCheckBox_load_tomorrow; // 상차일시 내일
-	static HWND ___TCheckBox_load_nowaday; // 상차일시 당일
-
-	static HWND ___TCheckBox_alight_now; // 하차일시, 지금
-	static HWND ___TCheckBox_alight_30m; // 하차일시, 30분
-	static HWND ___TComboBox_alight_hour; // 하차일시, 시간 선택
-	static HWND ____Edit_alight_hour; // 하차일시, 시간 edit
-	static HWND ___TComboBox_alight_ampm; // 하차일시, 오전 오후 선택
-	static HWND ____Edit_alight_ampm; // 하차일시, edit
-	static HWND ___TEdit_alight_day; // 하차일시, []일 상차
-	static HWND ___TCheckBox_alight_tomorrow; // 하차일시 내일
-	static HWND ___TCheckBox_alight_nowaday; // 하차일시 당일
 	static HWND ____TCheckBox_mixup; // 혼적
 	static HWND ____TEdit_load_capacity; // 적재 중량
 	static HWND ___TBitBtn_search_btn; // 검색 버튼
 	static HWND ___TEdit_search_text; // 검색 내용
 	static HWND ____TEdit_search_option; // 검색 옵션 / 상하차지 등
+	static HWND ____TCheckBox_reserved; // 예약
 
 	String loadAddr;
 	String alightAddr;
@@ -268,6 +250,9 @@ public class CargoMain extends JFrame {
 
 		HWND ____TXiPanel = User32.INSTANCE.FindWindowEx(___TPanel4_1, null, null, "상차방법");
 		HWND ____TPanel1 = User32.INSTANCE.FindWindowEx(___TPanel4_1, ____TXiPanel, "TPanel", null);
+		____TCheckBox_reserved = User32.INSTANCE.FindWindowEx(____TPanel1, null, null, "예약");
+		//
+		
 		HWND ____TPanel2 = User32.INSTANCE.FindWindowEx(___TPanel4_1, ____TPanel1, "TPanel", null);
 		____TCheckBox_mixup = User32.INSTANCE.FindWindowEx(____TPanel2, null, null, "혼적");
 
@@ -550,6 +535,16 @@ public class CargoMain extends JFrame {
 			} else {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_mixup, BM_GETCHECK, 0, 0) == BST_CHECKED) {
 					User32.INSTANCE.SendMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
+				}
+			}
+			
+			if (info.reserved.contains("예약")) {
+				if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
+					User32.INSTANCE.SendMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
+				}
+			} else {
+				if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+					User32.INSTANCE.SendMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
 				}
 			}
 

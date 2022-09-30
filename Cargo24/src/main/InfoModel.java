@@ -52,6 +52,7 @@ public class InfoModel {
 	public String[] car_sort_array;
 	
 	public String mixed_loading = "";
+	public String reserved = ""; // '' or 예약
 
 	public int time;
 	public InfoModel(String data) throws Exception {
@@ -136,5 +137,8 @@ public class InfoModel {
 			this.zin_36 = (String) jsonObj.get("zin_36");
 		}
 
+		if (jsonObj.get("reserved") != null) {
+			this.reserved = (String) jsonObj.get("reserved");
+		}
 	}
 }
