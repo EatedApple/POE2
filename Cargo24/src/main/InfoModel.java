@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class InfoModel {
 	String[] sort0_1 = { "다마스", "라보" };
@@ -55,10 +56,15 @@ public class InfoModel {
 	public String reserved = ""; // '' or 예약
 
 	public int time;
-	public InfoModel(String data) throws Exception {
+	public InfoModel(String data) {
 		JSONParser parser = new JSONParser();
-		Object obj;
-		obj = parser.parse(data);
+		Object obj = null;
+		try {
+			obj = parser.parse(data);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		JSONObject jsonObj = (JSONObject) obj;
 		this.type = (String) jsonObj.get("type");
 		
