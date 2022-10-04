@@ -1,5 +1,4 @@
 package main;
-
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -41,6 +40,7 @@ import javax.swing.JTextArea;
 import org.json.simple.JSONObject;
 
 import com.sun.jna.Memory;
+import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.GDI32;
 import com.sun.jna.platform.win32.WinDef.HBITMAP;
 import com.sun.jna.platform.win32.WinDef.HDC;
@@ -734,9 +734,13 @@ public class CargoMain extends JFrame {
 			return "";
 		}
 	}
-
+	
 	public void closeSearchAddrWindow() {
 		try {
+			if (User32.INSTANCE.FindWindow("TfrmAddrSearchXP", null) != null) {
+				HWND handle = User32.INSTANCE.FindWindow("TfrmAddrSearchXP", null);
+				Kernel32.INSTANCE.TerminateProcess (handle, 0);
+			}
 			HWND TfrmAddrSearchXP = User32.INSTANCE.FindWindow("TfrmAddrSearchXP", null);
 			HWND _TRzPanel = User32.INSTANCE.FindWindowEx(TfrmAddrSearchXP, null, "TRzPanel", null);
 			HWND __TRzPageControl = User32.INSTANCE.FindWindowEx(_TRzPanel, null, "TRzPageControl", null);
@@ -753,7 +757,7 @@ public class CargoMain extends JFrame {
 			Thread.sleep(300);
 			
 //			btnClick(___TJvXPButton);
-			//User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
+			User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
