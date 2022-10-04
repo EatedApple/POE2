@@ -7,6 +7,8 @@ import java.awt.image.RenderedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -17,6 +19,8 @@ import java.net.Socket;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -391,6 +395,16 @@ public class CargoMain extends JFrame {
 //							if (registVerification(info)) {
 //								msg += " / 검증(" + info.zin_36 + ")목록확인 존재o, 상태확인 필요)";
 //							}
+							
+							String memo = getMemo();
+							
+							String log = "등록\n[params]" + params + "\n" 
+									+ "[msg]" + msg + "\n"
+									+ "[memo]" + memo + "\n"
+									+ "[res]" + res.toJSONString();
+							
+							writeLog(info.zin_36, log);
+							
 
 							res.put("msg", msg.replace("\n", ""));
 							textArea.append("[ " + cip + " ] " + res.toJSONString() + "\n");
@@ -411,6 +425,12 @@ public class CargoMain extends JFrame {
 							String imageBase64 = imgToBase64String(priceImg, "png");
 							res.put("ocr", ocr.replace("\n", "").trim());
 							res.put("price", price);
+							
+							String log = "가격조회\n[params]" + params + "\n" 
+										+ "[res]" + res.toJSONString();
+							
+							writeLog(info.zin_36, log);
+							
 							textArea.append("[ " + cip + " ] " + price + "\n");
 						}
 						bw.write(res.toJSONString());
@@ -431,7 +451,6 @@ public class CargoMain extends JFrame {
 				}
 			}
 		});
-
 	}
 
 	public void setAddr(InfoModel info) {
@@ -488,6 +507,7 @@ public class CargoMain extends JFrame {
 			// 차종 설정
 			User32.INSTANCE.PostMessage(____TRzComboBox_carsort, CB_SETCURSEL, info.car_sort_idx, 0);
 			Thread.sleep(waitTime);
+			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
 			// =============================================================== search price
 			// 는 여기까지만 필요
 		} catch (InterruptedException e) {
@@ -501,8 +521,6 @@ public class CargoMain extends JFrame {
 		try {
 			int leftFrameParent = User32.INSTANCE.GetWindowLongPtr(____TRzComboBox_ton, -12);
 			int send_cbn_selchange = MakeWParam(leftFrameParent, CBN_SELCHANGE);
-
-			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
 
 			Thread.sleep(waitTime);
 
@@ -521,6 +539,7 @@ public class CargoMain extends JFrame {
 			sendChar(____TwNumEdit_commission, info.commission + "");
 			Thread.sleep(waitTime);
 			// 화물 정보
+			sendChar(____TEdit5_more_infomation, "");
 			sendChar(____TEdit5_more_infomation, info.freight_info);
 			Thread.sleep(waitTime);
 			User32.INSTANCE.SendMessage(____TMemo, WM_SETFOCUS, 0, 0);
@@ -576,6 +595,31 @@ public class CargoMain extends JFrame {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+	
+	public void writeLog(String filename, String msg) {
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH_mm_ss");
+		String now = dtf.format(LocalDateTime.now());
+		File file = new File("C:\\Users\\user\\Desktop\\log\\" + (filename.length() == 0 || filename == null ? now : filename) + ".txt");
+		
+		now += "\n" + msg;
+		String str = now;
+
+		try {
+		    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+		    writer.write(str);
+		    writer.close();
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
+	}
+	
+	public String getMemo() {
+		int len = User32.INSTANCE.SendMessage(____TMemo, WM_GETTEXTLENGTH, 0, 0);
+		char[] memo = new char[len];
+		User32.INSTANCE.SendMessage(____TMemo, WM_GETTEXT, 512, memo);
+		String memoStr = Native.toString(memo).replace("\\p{Sc}", "");
+		return memoStr;
 	}
 
 	public boolean registVerification(InfoModel info) {
