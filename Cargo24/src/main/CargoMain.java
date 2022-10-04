@@ -1,4 +1,5 @@
 package main;
+
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -256,7 +257,7 @@ public class CargoMain extends JFrame {
 		HWND ____TPanel1 = User32.INSTANCE.FindWindowEx(___TPanel4_1, ____TXiPanel, "TPanel", null);
 		____TCheckBox_reserved = User32.INSTANCE.FindWindowEx(____TPanel1, null, null, "예약");
 		//
-		
+
 		HWND ____TPanel2 = User32.INSTANCE.FindWindowEx(___TPanel4_1, ____TPanel1, "TPanel", null);
 		____TCheckBox_mixup = User32.INSTANCE.FindWindowEx(____TPanel2, null, null, "혼적");
 
@@ -301,7 +302,7 @@ public class CargoMain extends JFrame {
 		}
 	}
 
-	static ExecutorService executorService = Executors.newCachedThreadPool();
+	static ExecutorService executorService = Executors.newFixedThreadPool(1);
 	static Socket socket;
 	int port = 8000;
 
@@ -324,169 +325,176 @@ public class CargoMain extends JFrame {
 		setVisible(true);
 		getHwnd();
 
-		executorService.submit(() -> {
-			BufferedReader br = null;
-			BufferedWriter bw = null;
-			int BUF_SIZE = 1024 * 7;
+		BufferedReader br = null;
+		BufferedWriter bw = null;
+		int BUF_SIZE = 1024 * 7;
 
-			textArea.append("서버 시작..\n");
-			ServerSocket serverSocket = new ServerSocket(port);
-			while (true) {
-				try {
-					loadAddr = null;
-					alightAddr = null;
-					textArea.append("접속 대기..\n");
-					socket = serverSocket.accept();
-					socket.setSoTimeout(5000);
+		textArea.append("서버 시작..\n");
+		ServerSocket serverSocket = null;
+		try {
+			serverSocket = new ServerSocket(port);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		while (true) {
+			try {
+				loadAddr = null;
+				alightAddr = null;
+				textArea.append("접속 대기..\n");
+				socket = serverSocket.accept();
+				socket.setSoTimeout(10000);
 
-					String cip = socket.getInetAddress().toString();
-					textArea.append("[ " + cip + " ] 접속\n");
-					if (!cip.contains("112.175.243.19") && !cip.contains("192.168.0.1")) {
-						textArea.append("[ " + cip + " ] 허용ip 아님\n");
-						socket.close();
-						continue;
-					}
+				String cip = socket.getInetAddress().toString();
+				textArea.append("[ " + cip + " ] 접속\n");
+				if (!cip.contains("112.175.243.19") && !cip.contains("192.168.0.1")) {
+					textArea.append("[ " + cip + " ] 허용ip 아님\n");
+					socket.close();
+					continue;
+				}
 
-					br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf8"), BUF_SIZE);
-					bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+				br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf8"), BUF_SIZE);
+				bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-					String params = br.readLine();
-					textArea.append(params + "\n");
+				String params = br.readLine();
+				textArea.append(params + "\n");
 
-					InfoModel info = new InfoModel(params);
-					// info.price = 10000;
-					if (mappingFileds.get(info.time) != null) {
-						// textArea.append("완료 중복 시간");
-						// socket.close();
-						// continue;
-					}
-					mappingFileds.put(info.time, 0);
-					setAddr(info);
-					loadAddr = getLoadAddrText();
-					alightAddr = getAlightAddrText();
-					setTonCar(info);
+				InfoModel info = new InfoModel(params);
+				// info.price = 10000;
+				if (mappingFileds.get(info.time) != null) {
+					// textArea.append("완료 중복 시간");
+					// socket.close();
+					// continue;
+				}
+				mappingFileds.put(info.time, 0);
+				setAddr(info);
+				loadAddr = getLoadAddrText();
+				alightAddr = getAlightAddrText();
+				setTonCar(info);
 
-					JSONObject res = new JSONObject();
-					res.put("req_load_addr", info.load_addr);
-					res.put("req_alight_addr", info.alight_addr);
-					res.put("res_load_addr", loadAddr);
-					res.put("res_alight_addr", alightAddr);
-					res.put("capture_image", "");
-					res.put("proc", 1);
+				JSONObject res = new JSONObject();
+				res.put("req_load_addr", info.load_addr);
+				res.put("req_alight_addr", info.alight_addr);
+				res.put("res_load_addr", loadAddr);
+				res.put("res_alight_addr", alightAddr);
+				res.put("capture_image", "");
+				res.put("proc", 1);
 
-					if (info.type.contains("regist")) {
-						setRegistOption(info);
-						saveBmp(info.zin_36);
-						registBtnClick();
-						String confirmMsg = confirmMessageForm();
-						String msg = "";
+				if (info.type.contains("regist")) {
+					setRegistOption(info);
+					saveBmp(info.zin_36);
+					registBtnClick();
+					String confirmMsg = confirmMessageForm();
+					String msg = "";
 
-						if (confirmMsg == null) {
-							msg += "등록실패";
-							res.put("proc", 0);
-						} else {								 
-							if (!confirmMsg.contains("접수")) {
-								res.put("proc", 0);
-							}
-							msg += confirmMsg;
-						}
-
-//						if (registVerification(info)) {
-//							msg += " / 검증(" + info.zin_36 + ")목록확인 존재o, 상태확인 필요)";
-//						}
-						
-						String memo = getMemo();
-						
-						String log = "등록\n[params]" + params + "\n" 
-								+ "[msg]" + msg + "\n"
-								+ "[memo]" + memo + "\n"
-								+ "[res]" + res.toJSONString();
-						
-						writeLog(info.zin_36, log);
-						
-
-						res.put("msg", msg.replace("\n", ""));
-						textArea.append("[ " + cip + " ] " + res.toJSONString() + "\n");
+					if (confirmMsg == null) {
+						msg += "등록실패";
+						res.put("proc", 0);
 					} else {
-						if (loadAddr.replace(" ", "").length() == 0 || alightAddr.replace(" ", "").length() == 0) {
-							throw new Exception("상하차지 정보가 잘못 들어감");
+						if (!confirmMsg.contains("접수")) {
+							res.put("proc", 0);
 						}
-
-						final BufferedImage priceImg = getDistancePrice();
-						String ocr = OCR(priceImg);
-						String arr = Arrays.toString(ocr.split(":"));
-
-						if (arr.length() < 3) {
-							throw new Exception("요금정보 불러오기 실패");
-						}
-						System.out.println("###########" + ocr);
-						String price = ocr.split(":")[2].replace("[^\\d.]", "").replace("?", "7");
-						String imageBase64 = imgToBase64String(priceImg, "png");
-						res.put("ocr", ocr.replace("\n", "").trim());
-						res.put("price", price);
-						
-						String log = "가격조회\n[params]" + params + "\n" 
-									+ "[res]" + res.toJSONString();
-						
-						String filename = info.load_addr + " 에서 " + info.alight_addr;
-						saveBmp(filename);
-						writeLog(filename, log);
-						
-						textArea.append("[ " + cip + " ] " + price + "\n");
+						msg += confirmMsg;
 					}
-					bw.write(res.toJSONString());
-					bw.flush();
-					setResizable(false);
-					setVisible(true);
 
-				} catch (Exception ex) {
-					writeLog("error = ", ex.getMessage());
-					textArea.append("\n Server exception: " + ex.getMessage());
-					JSONObject res = new JSONObject();
-					res.put("msg", ex.getMessage());
-					res.put("proc", 0);
+//					if (registVerification(info)) {
+//						msg += " / 검증(" + info.zin_36 + ")목록확인 존재o, 상태확인 필요)";
+//					}
+
+					String memo = getMemo();
+
+					String log = "등록\n[params]" + params + "\n" + "[msg]" + msg + "\n" + "[memo]" + memo + "\n"
+							+ "[res]" + res.toJSONString();
+
+					writeLog(info.zin_36, log);
+
+					res.put("msg", msg.replace("\n", ""));
+					textArea.append("[ " + cip + " ] " + res.toJSONString() + "\n");
+				} else {
+					if (loadAddr.replace(" ", "").length() == 0 || alightAddr.replace(" ", "").length() == 0) {
+						throw new Exception("상하차지 정보가 잘못 들어감");
+					}
+
+					final BufferedImage priceImg = getDistancePrice();
+					String ocr = OCR(priceImg);
+					String arr = Arrays.toString(ocr.split(":"));
+
+					if (arr.length() < 3) {
+						throw new Exception("요금정보 불러오기 실패");
+					}
+					System.out.println("###########" + ocr);
+					String price = ocr.split(":")[2].replace("[^\\d.]", "").replace("?", "7");
+					String imageBase64 = imgToBase64String(priceImg, "png");
+					res.put("ocr", ocr.replace("\n", "").trim());
+					res.put("price", price);
+
+					String log = "가격조회\n[params]" + params + "\n" + "[res]" + res.toJSONString();
+
+					String filename = info.load_addr + " 에서 " + info.alight_addr;
+					saveBmp(filename);
+					writeLog(filename, log);
+
+					textArea.append("[ " + cip + " ] " + price + "\n");
+				}
+				bw.write(res.toJSONString());
+				bw.flush();
+				setResizable(false);
+				setVisible(true);
+
+			} catch (Exception ex) {
+				writeLog("error", ex.getMessage());
+				textArea.append("\n Server exception: " + ex.getMessage());
+				JSONObject res = new JSONObject();
+				res.put("msg", ex.getMessage());
+				res.put("proc", 0);
+				try {
 					bw.write(res.toJSONString());
 					bw.flush();
 					if (socket != null && socket.isConnected()) {
-						socket.close();	
+						socket.close();
 					}
-					continue;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
+				
+				continue;
 			}
-		});
+		}
+	
 	}
 
 	public void setAddr(InfoModel info) {
 		try {
 			closeSearchAddrWindow();
 			User32.INSTANCE.SendMessage(___TBitBtn_newBtn, (int) BM_CLICK, 0, 0); // 신규(F3) 누르기
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 
 			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETFOCUS, 0, 0); // 상차지 포커스
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETTEXT, 0, info.load_addr); // 상차지 텍스트 넣기
-			Thread.sleep(waitTime);
-			User32.INSTANCE.PostMessage(____TEdit9_startAddr, WM_KEYDOWN, VK_RETURN, 1); // 상차지 엔터
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
+			User32.INSTANCE.PostMessage(____TEdit9_startAddr, WM_KEYDOWN, VK_RETURN, 0); // 상차지 엔터
+			Thread.sleep(300);
 			closeSearchAddrWindow();
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			User32.INSTANCE.PostMessage(____TDBGrid, WM_KEYDOWN, VK_RETURN, 0); // 상차지 리스트 엔터
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_KILLFOCUS, 0, 0); // 상차지 포커스 해제
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 
 			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_SETFOCUS, 0, 0);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_SETTEXT, 0, info.alight_addr);
-			Thread.sleep(waitTime);
-			User32.INSTANCE.PostMessage(____TEdit7_endAddr, WM_KEYDOWN, VK_RETURN, 1);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
+			User32.INSTANCE.PostMessage(____TEdit7_endAddr, WM_KEYDOWN, VK_RETURN, 0);
+			Thread.sleep(300);
 			closeSearchAddrWindow();
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			User32.INSTANCE.PostMessage(____TDBGrid, WM_KEYDOWN, VK_RETURN, 0);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_KILLFOCUS, 0, 0);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			closeSearchAddrWindow();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -499,20 +507,21 @@ public class CargoMain extends JFrame {
 	public void setTonCar(InfoModel info) {
 
 		try {
-			Thread.sleep(waitTime);
+			closeSearchAddrWindow();
+			Thread.sleep(100);
 			int leftFrameParent = User32.INSTANCE.GetWindowLongPtr(____TRzComboBox_ton, -12);
 			int send_cbn_selchange = MakeWParam(leftFrameParent, CBN_SELCHANGE);
 
 			// 톤수 설정
 			User32.INSTANCE.PostMessage(____TRzComboBox_ton, CB_SETCURSEL, info.ton_idx, 0);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_ton);
-			
-			Thread.sleep(waitTime);
-			
+
+			Thread.sleep(100);
+
 			// 차종 설정
 			User32.INSTANCE.PostMessage(____TRzComboBox_carsort, CB_SETCURSEL, info.car_sort_idx, 0);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -521,33 +530,33 @@ public class CargoMain extends JFrame {
 	}
 
 	public void setRegistOption(InfoModel info) {
-
 		try {
 			int leftFrameParent = User32.INSTANCE.GetWindowLongPtr(____TRzComboBox_ton, -12);
 			int send_cbn_selchange = MakeWParam(leftFrameParent, CBN_SELCHANGE);
 
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 
 			// 도착 설정
 			User32.INSTANCE.PostMessage(____TComboBox_arrival, CB_SETCURSEL, info.arrival_idx, 0);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			// 지불 방식 운송비구분
 			sendChar(____TwCombo_payment_method, info.payment_method);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			// 운송료
 			sendChar(____TwNumEdit_shipping_fee, info.price + "");
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			// 수수료
 			sendChar(____TwNumEdit_commission, info.commission + "");
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			// 화물 정보
 			sendChar(____TEdit5_more_infomation, "");
+			Thread.sleep(100);
 			sendChar(____TEdit5_more_infomation, info.freight_info);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 			User32.INSTANCE.SendMessage(____TMemo, WM_SETFOCUS, 0, 0);
-			Thread.sleep(waitTime);
+			Thread.sleep(100);
 
 			sendChar(____TEdit_load_capacity, info.ton_info);
 
@@ -560,7 +569,7 @@ public class CargoMain extends JFrame {
 					User32.INSTANCE.SendMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
 				}
 			}
-			
+
 			if (info.reserved.contains("예약")) {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
 					User32.INSTANCE.SendMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
@@ -576,7 +585,7 @@ public class CargoMain extends JFrame {
 		}
 
 	}
-	
+
 	public void registBtnClick() {
 		User32.INSTANCE.SendMessageTimeout(___TBitBtn_registBtn, (int) BM_CLICK, 0, 0, 0, 1, 0); // 등록
 	}
@@ -602,37 +611,39 @@ public class CargoMain extends JFrame {
 			return null;
 		}
 	}
-	
+
 	public void saveBmp(String filename) {
-        try {
-    		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH_mm_ss");
-    		String now = dtf.format(LocalDateTime.now());
-    		
-    		BufferedImage image = capture(___TPanel5, 1);
-    		File file = new File("C:\\Users\\user\\Desktop\\log\\" + (filename.length() == 0 || filename == null ? now : filename) + ".jpg");
+		try {
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH_mm_ss");
+			String now = dtf.format(LocalDateTime.now());
+
+			BufferedImage image = capture(___TPanel5, 1);
+			File file = new File("C:\\Users\\user\\Desktop\\log\\"
+					+ (filename.length() == 0 || filename == null ? now : filename) + ".jpg");
 			ImageIO.write(image, "jpg", file);
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
 	}
-	
+
 	public void writeLog(String filename, String msg) {
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH_mm_ss");
 		String now = dtf.format(LocalDateTime.now());
-		File file = new File("C:\\Users\\user\\Desktop\\log\\" + (filename.length() == 0 || filename == null ? now : filename) + ".txt");
-		
+		File file = new File("C:\\Users\\user\\Desktop\\log\\"
+				+ (filename.length() == 0 || filename == null ? now : filename) + ".txt");
+
 		now += "\n" + msg;
 		String str = now;
 
 		try {
-		    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-		    writer.write(str);
-		    writer.close();
+			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+			writer.write(str);
+			writer.close();
 		} catch (IOException e) {
-		    e.printStackTrace();
+			e.printStackTrace();
 		}
 	}
-	
+
 	public String getMemo() {
 		int len = User32.INSTANCE.SendMessage(____TMemo, WM_GETTEXTLENGTH, 0, 0);
 		char[] memo = new char[len];
@@ -655,7 +666,7 @@ public class CargoMain extends JFrame {
 			User32.INSTANCE.SendMessageTimeout(___TBitBtn_search_btn, (int) BM_CLICK, 0, 0, 0, 1, 0);
 			Thread.sleep(300);
 			// ____TMemo
-			
+
 			int len = User32.INSTANCE.SendMessage(____TMemo, WM_GETTEXTLENGTH, 0, 0);
 			char[] memo = new char[len];
 			User32.INSTANCE.SendMessage(____TMemo, WM_GETTEXT, 512, memo);
@@ -695,11 +706,11 @@ public class CargoMain extends JFrame {
 			int len = User32.INSTANCE.SendMessage(____TEdit10, WM_GETTEXTLENGTH, 0, 0);
 			char[] loadAddr1 = new char[len];
 			User32.INSTANCE.SendMessage(____TEdit10, WM_GETTEXT, 512, loadAddr1);
-			
+
 			len = User32.INSTANCE.SendMessage(____TEdit4, WM_GETTEXTLENGTH, 0, 0);
 			char[] loadAddr2 = new char[len];
 			User32.INSTANCE.SendMessage(____TEdit4, WM_GETTEXT, 512, loadAddr2);
-			
+
 			len = User32.INSTANCE.SendMessage(____TEdit2, WM_GETTEXTLENGTH, 0, 0);
 			char[] loadAddr3 = new char[len];
 			User32.INSTANCE.SendMessage(____TEdit2, WM_GETTEXT, 512, loadAddr3);
@@ -718,11 +729,11 @@ public class CargoMain extends JFrame {
 			int len = User32.INSTANCE.SendMessage(____TEdit8, WM_GETTEXTLENGTH, 0, 0);
 			char[] alightAddr1 = new char[len];
 			User32.INSTANCE.SendMessage(____TEdit8, WM_GETTEXT, 100, alightAddr1);
-			
+
 			len = User32.INSTANCE.SendMessage(____TEdit3, WM_GETTEXTLENGTH, 0, 0);
 			char[] alightAddr2 = new char[len];
 			User32.INSTANCE.SendMessage(____TEdit3, WM_GETTEXT, 100, alightAddr2);
-			
+
 			len = User32.INSTANCE.SendMessage(____TEdit1, WM_GETTEXTLENGTH, 0, 0);
 			char[] alightAddr3 = new char[len];
 			User32.INSTANCE.SendMessage(____TEdit1, WM_GETTEXT, 100, alightAddr3);
@@ -735,29 +746,26 @@ public class CargoMain extends JFrame {
 			return "";
 		}
 	}
-	
+
 	public void closeSearchAddrWindow() {
 		try {
-			if (User32.INSTANCE.FindWindow("TfrmAddrSearchXP", null) != null) {
-				HWND handle = User32.INSTANCE.FindWindow("TfrmAddrSearchXP", null);
-				Kernel32.INSTANCE.TerminateProcess (handle, 0);
-			}
+			Thread.sleep(200);
 			HWND TfrmAddrSearchXP = User32.INSTANCE.FindWindow("TfrmAddrSearchXP", null);
-			HWND _TRzPanel = User32.INSTANCE.FindWindowEx(TfrmAddrSearchXP, null, "TRzPanel", null);
-			HWND __TRzPageControl = User32.INSTANCE.FindWindowEx(_TRzPanel, null, "TRzPageControl", null);
-			HWND ___TRzTabSheet = User32.INSTANCE.FindWindowEx(__TRzPageControl, null, "TRzTabSheet", null);
-			HWND ____TPanel = User32.INSTANCE.FindWindowEx(___TRzTabSheet, null, "TPanel", null);
-			HWND _____TRealGrid = User32.INSTANCE.FindWindowEx(____TPanel, null, "TRealGrid", null);
-			
-			HWND _TRzPanel2 = User32.INSTANCE.FindWindowEx(TfrmAddrSearchXP, _TRzPanel, "TRzPanel", null);
-			HWND __TPanel = User32.INSTANCE.FindWindowEx(_TRzPanel2, null, "TRzPanel", null);
-			HWND ___TJvXPButton = User32.INSTANCE.FindWindowEx(__TPanel, null, "__TJvXPButton", null);
+//			HWND _TRzPanel = User32.INSTANCE.FindWindowEx(TfrmAddrSearchXP, null, "TRzPanel", null);
+//			HWND __TRzPageControl = User32.INSTANCE.FindWindowEx(_TRzPanel, null, "TRzPageControl", null);
+//			HWND ___TRzTabSheet = User32.INSTANCE.FindWindowEx(__TRzPageControl, null, "TRzTabSheet", null);
+//			HWND ____TPanel = User32.INSTANCE.FindWindowEx(___TRzTabSheet, null, "TPanel", null);
+//			HWND _____TRealGrid = User32.INSTANCE.FindWindowEx(____TPanel, null, "TRealGrid", null);
+//			
+//			HWND _TRzPanel2 = User32.INSTANCE.FindWindowEx(TfrmAddrSearchXP, _TRzPanel, "TRzPanel", null);
+//			HWND __TPanel = User32.INSTANCE.FindWindowEx(_TRzPanel2, null, "TRzPanel", null);
+//			HWND ___TJvXPButton = User32.INSTANCE.FindWindowEx(__TPanel, null, "__TJvXPButton", null);
+//
+//			User32.INSTANCE.PostMessage(_____TRealGrid, 0x0203, MK_LBUTTON, MakeWParam(50, 50));
+//			User32.INSTANCE.PostMessage(_____TRealGrid, WM_LBUTTONUP, MK_LBUTTON, MakeWParam(50, 50));
+//			Thread.sleep(200);
 
-			User32.INSTANCE.PostMessage(_____TRealGrid, 0x0203, MK_LBUTTON, MakeWParam(50, 50));
-			User32.INSTANCE.PostMessage(_____TRealGrid, WM_LBUTTONUP, MK_LBUTTON, MakeWParam(50, 50));
-			Thread.sleep(300);
-			
-//			btnClick(___TJvXPButton);
+			User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
 			User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
