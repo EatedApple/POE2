@@ -379,18 +379,18 @@ public class CargoMain extends JFrame {
 							String msg = "";
 
 							if (confirmMsg == null) {
-								msg += "msg is null";
+								msg += "등록실패";
 								res.put("proc", 0);
-							} else {
-								if (confirmMsg.contains("Error")) {
+							} else {								 
+								if (!confirmMsg.contains("접수")) {
 									res.put("proc", 0);
 								}
 								msg += confirmMsg;
 							}
 
-							if (registVerification(info)) {
-								msg += " / 검증(" + info.zin_36 + ")목록확인 존재o, 상태확인 필요)";
-							}
+//							if (registVerification(info)) {
+//								msg += " / 검증(" + info.zin_36 + ")목록확인 존재o, 상태확인 필요)";
+//							}
 
 							res.put("msg", msg.replace("\n", ""));
 							textArea.append("[ " + cip + " ] " + res.toJSONString() + "\n");
@@ -407,7 +407,7 @@ public class CargoMain extends JFrame {
 								throw new Exception("요금정보 불러오기 실패");
 							}
 							System.out.println("###########" + ocr);
-							String price = ocr.split(":")[2].replace("[^\\d.]", "");
+							String price = ocr.split(":")[2].replace("[^\\d.]", "").replace("?", "7");
 							String imageBase64 = imgToBase64String(priceImg, "png");
 							res.put("ocr", ocr.replace("\n", "").trim());
 							res.put("price", price);
