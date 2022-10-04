@@ -7,6 +7,8 @@ import java.awt.image.RenderedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -17,6 +19,8 @@ import java.net.Socket;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -321,117 +325,135 @@ public class CargoMain extends JFrame {
 		getHwnd();
 
 		executorService.submit(() -> {
+			BufferedReader br = null;
+			BufferedWriter bw = null;
+			int BUF_SIZE = 1024 * 7;
+
+			textArea.append("서버 시작..\n");
+			ServerSocket serverSocket = new ServerSocket(port);
 			while (true) {
+				try {
+					loadAddr = null;
+					alightAddr = null;
+					textArea.append("접속 대기..\n");
+					socket = serverSocket.accept();
+					socket.setSoTimeout(5000);
 
-				BufferedReader br = null;
-				BufferedWriter bw = null;
-				int BUF_SIZE = 1024 * 7;
-
-				textArea.append("서버 시작..\n");
-				ServerSocket serverSocket = new ServerSocket(port);
-				while (true) {
-					try {
-						loadAddr = null;
-						alightAddr = null;
-						textArea.append("접속 대기..\n");
-						socket = serverSocket.accept();
-						socket.setSoTimeout(5000);
-
-						String cip = socket.getInetAddress().toString();
-						textArea.append("[ " + cip + " ] 접속\n");
-						if (!cip.contains("112.175.243.19") && !cip.contains("192.168.0.1")) {
-							textArea.append("[ " + cip + " ] 허용ip 아님\n");
-							socket.close();
-							continue;
-						}
-
-						br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf8"), BUF_SIZE);
-						bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
-						String params = br.readLine();
-						textArea.append(params + "\n");
-
-						InfoModel info = new InfoModel(params);
-						// info.price = 10000;
-						if (mappingFileds.get(info.time) != null) {
-							// textArea.append("완료 중복 시간");
-							// socket.close();
-							// continue;
-						}
-						mappingFileds.put(info.time, 0);
-						setAddr(info);
-						loadAddr = getLoadAddrText();
-						alightAddr = getAlightAddrText();
-						setTonCar(info);
-
-						JSONObject res = new JSONObject();
-						res.put("req_load_addr", info.load_addr);
-						res.put("req_alight_addr", info.alight_addr);
-						res.put("res_load_addr", loadAddr);
-						res.put("res_alight_addr", alightAddr);
-						res.put("capture_image", "");
-						res.put("proc", 1);
-
-						if (info.type.contains("regist")) {
-							setRegistOption(info);
-							String confirmMsg = confirmMessageForm();
-
-							String msg = "";
-
-							if (confirmMsg == null) {
-								msg += "msg is null";
-								res.put("proc", 0);
-							} else {
-								if (confirmMsg.contains("Error")) {
-									res.put("proc", 0);
-								}
-								msg += confirmMsg;
-							}
-
-							if (registVerification(info)) {
-								msg += " / 검증(" + info.zin_36 + ")목록확인 존재o, 상태확인 필요)";
-							}
-
-							res.put("msg", msg.replace("\n", ""));
-							textArea.append("[ " + cip + " ] " + res.toJSONString() + "\n");
-						} else {
-							if (loadAddr.replace(" ", "").length() == 0 || alightAddr.replace(" ", "").length() == 0) {
-								throw new Exception("상하차지 정보가 잘못 들어감");
-							}
-
-							final BufferedImage priceImg = getDistancePrice();
-							String ocr = OCR(priceImg);
-							String arr = Arrays.toString(ocr.split(":"));
-
-							if (arr.length() < 3) {
-								throw new Exception("요금정보 불러오기 실패");
-							}
-							System.out.println("###########" + ocr);
-							String price = ocr.split(":")[2].replace("[^\\d.]", "");
-							String imageBase64 = imgToBase64String(priceImg, "png");
-							res.put("ocr", ocr.replace("\n", "").trim());
-							res.put("price", price);
-							textArea.append("[ " + cip + " ] " + price + "\n");
-						}
-						bw.write(res.toJSONString());
-						bw.flush();
-						setResizable(false);
-						setVisible(true);
-
-					} catch (Exception ex) {
-						textArea.append("\n Server exception: " + ex.getMessage());
-						JSONObject res = new JSONObject();
-						res.put("msg", ex.getMessage());
-						res.put("proc", 0);
-						bw.write(res.toJSONString());
-						bw.flush();
+					String cip = socket.getInetAddress().toString();
+					textArea.append("[ " + cip + " ] 접속\n");
+					if (!cip.contains("112.175.243.19") && !cip.contains("192.168.0.1")) {
+						textArea.append("[ " + cip + " ] 허용ip 아님\n");
 						socket.close();
 						continue;
 					}
+
+					br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf8"), BUF_SIZE);
+					bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+					String params = br.readLine();
+					textArea.append(params + "\n");
+
+					InfoModel info = new InfoModel(params);
+					// info.price = 10000;
+					if (mappingFileds.get(info.time) != null) {
+						// textArea.append("완료 중복 시간");
+						// socket.close();
+						// continue;
+					}
+					mappingFileds.put(info.time, 0);
+					setAddr(info);
+					loadAddr = getLoadAddrText();
+					alightAddr = getAlightAddrText();
+					setTonCar(info);
+
+					JSONObject res = new JSONObject();
+					res.put("req_load_addr", info.load_addr);
+					res.put("req_alight_addr", info.alight_addr);
+					res.put("res_load_addr", loadAddr);
+					res.put("res_alight_addr", alightAddr);
+					res.put("capture_image", "");
+					res.put("proc", 1);
+
+					if (info.type.contains("regist")) {
+						setRegistOption(info);
+						saveBmp(info.zin_36);
+						registBtnClick();
+						String confirmMsg = confirmMessageForm();
+						String msg = "";
+
+						if (confirmMsg == null) {
+							msg += "등록실패";
+							res.put("proc", 0);
+						} else {								 
+							if (!confirmMsg.contains("접수")) {
+								res.put("proc", 0);
+							}
+							msg += confirmMsg;
+						}
+
+//						if (registVerification(info)) {
+//							msg += " / 검증(" + info.zin_36 + ")목록확인 존재o, 상태확인 필요)";
+//						}
+						
+						String memo = getMemo();
+						
+						String log = "등록\n[params]" + params + "\n" 
+								+ "[msg]" + msg + "\n"
+								+ "[memo]" + memo + "\n"
+								+ "[res]" + res.toJSONString();
+						
+						writeLog(info.zin_36, log);
+						
+
+						res.put("msg", msg.replace("\n", ""));
+						textArea.append("[ " + cip + " ] " + res.toJSONString() + "\n");
+					} else {
+						if (loadAddr.replace(" ", "").length() == 0 || alightAddr.replace(" ", "").length() == 0) {
+							throw new Exception("상하차지 정보가 잘못 들어감");
+						}
+
+						final BufferedImage priceImg = getDistancePrice();
+						String ocr = OCR(priceImg);
+						String arr = Arrays.toString(ocr.split(":"));
+
+						if (arr.length() < 3) {
+							throw new Exception("요금정보 불러오기 실패");
+						}
+						System.out.println("###########" + ocr);
+						String price = ocr.split(":")[2].replace("[^\\d.]", "").replace("?", "7");
+						String imageBase64 = imgToBase64String(priceImg, "png");
+						res.put("ocr", ocr.replace("\n", "").trim());
+						res.put("price", price);
+						
+						String log = "가격조회\n[params]" + params + "\n" 
+									+ "[res]" + res.toJSONString();
+						
+						String filename = info.load_addr + " 에서 " + info.alight_addr;
+						saveBmp(filename);
+						writeLog(filename, log);
+						
+						textArea.append("[ " + cip + " ] " + price + "\n");
+					}
+					bw.write(res.toJSONString());
+					bw.flush();
+					setResizable(false);
+					setVisible(true);
+
+				} catch (Exception ex) {
+					writeLog("error = ", ex.getMessage());
+					textArea.append("\n Server exception: " + ex.getMessage());
+					JSONObject res = new JSONObject();
+					res.put("msg", ex.getMessage());
+					res.put("proc", 0);
+					bw.write(res.toJSONString());
+					bw.flush();
+					if (socket != null && socket.isConnected()) {
+						socket.close();	
+					}
+					continue;
 				}
 			}
 		});
-
 	}
 
 	public void setAddr(InfoModel info) {
@@ -488,6 +510,7 @@ public class CargoMain extends JFrame {
 			// 차종 설정
 			User32.INSTANCE.PostMessage(____TRzComboBox_carsort, CB_SETCURSEL, info.car_sort_idx, 0);
 			Thread.sleep(waitTime);
+			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
 			// =============================================================== search price
 			// 는 여기까지만 필요
 		} catch (InterruptedException e) {
@@ -501,8 +524,6 @@ public class CargoMain extends JFrame {
 		try {
 			int leftFrameParent = User32.INSTANCE.GetWindowLongPtr(____TRzComboBox_ton, -12);
 			int send_cbn_selchange = MakeWParam(leftFrameParent, CBN_SELCHANGE);
-
-			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
 
 			Thread.sleep(waitTime);
 
@@ -521,6 +542,7 @@ public class CargoMain extends JFrame {
 			sendChar(____TwNumEdit_commission, info.commission + "");
 			Thread.sleep(waitTime);
 			// 화물 정보
+			sendChar(____TEdit5_more_infomation, "");
 			sendChar(____TEdit5_more_infomation, info.freight_info);
 			Thread.sleep(waitTime);
 			User32.INSTANCE.SendMessage(____TMemo, WM_SETFOCUS, 0, 0);
@@ -547,13 +569,15 @@ public class CargoMain extends JFrame {
 					User32.INSTANCE.SendMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
 				}
 			}
-
-			User32.INSTANCE.SendMessageTimeout(___TBitBtn_registBtn, (int) BM_CLICK, 0, 0, 0, 1, 0); // 등록
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
+	}
+	
+	public void registBtnClick() {
+		User32.INSTANCE.SendMessageTimeout(___TBitBtn_registBtn, (int) BM_CLICK, 0, 0, 0, 1, 0); // 등록
 	}
 
 	public String confirmMessageForm() {
@@ -576,6 +600,44 @@ public class CargoMain extends JFrame {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+	
+	public void saveBmp(String filename) {
+        try {
+    		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH_mm_ss");
+    		String now = dtf.format(LocalDateTime.now());
+    		
+    		BufferedImage image = capture(___TPanel5, 1);
+    		File file = new File("C:\\Users\\user\\Desktop\\log\\" + (filename.length() == 0 || filename == null ? now : filename) + ".jpg");
+			ImageIO.write(image, "jpg", file);
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public void writeLog(String filename, String msg) {
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HH_mm_ss");
+		String now = dtf.format(LocalDateTime.now());
+		File file = new File("C:\\Users\\user\\Desktop\\log\\" + (filename.length() == 0 || filename == null ? now : filename) + ".txt");
+		
+		now += "\n" + msg;
+		String str = now;
+
+		try {
+		    BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+		    writer.write(str);
+		    writer.close();
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
+	}
+	
+	public String getMemo() {
+		int len = User32.INSTANCE.SendMessage(____TMemo, WM_GETTEXTLENGTH, 0, 0);
+		char[] memo = new char[len];
+		User32.INSTANCE.SendMessage(____TMemo, WM_GETTEXT, 512, memo);
+		String memoStr = Native.toString(memo).replace("\\p{Sc}", "");
+		return memoStr;
 	}
 
 	public boolean registVerification(InfoModel info) {
@@ -681,16 +743,21 @@ public class CargoMain extends JFrame {
 			HWND ___TRzTabSheet = User32.INSTANCE.FindWindowEx(__TRzPageControl, null, "TRzTabSheet", null);
 			HWND ____TPanel = User32.INSTANCE.FindWindowEx(___TRzTabSheet, null, "TPanel", null);
 			HWND _____TRealGrid = User32.INSTANCE.FindWindowEx(____TPanel, null, "TRealGrid", null);
+			
+			HWND _TRzPanel2 = User32.INSTANCE.FindWindowEx(TfrmAddrSearchXP, _TRzPanel, "TRzPanel", null);
+			HWND __TPanel = User32.INSTANCE.FindWindowEx(_TRzPanel2, null, "TRzPanel", null);
+			HWND ___TJvXPButton = User32.INSTANCE.FindWindowEx(__TPanel, null, "__TJvXPButton", null);
 
 			User32.INSTANCE.PostMessage(_____TRealGrid, 0x0203, MK_LBUTTON, MakeWParam(50, 50));
 			User32.INSTANCE.PostMessage(_____TRealGrid, WM_LBUTTONUP, MK_LBUTTON, MakeWParam(50, 50));
-
-			Thread.sleep(100);
+			Thread.sleep(300);
+			
+//			btnClick(___TJvXPButton);
+			//User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		// User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
 	}
 
 	public String OCR(BufferedImage image) {
