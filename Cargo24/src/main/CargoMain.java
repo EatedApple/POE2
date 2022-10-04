@@ -505,14 +505,15 @@ public class CargoMain extends JFrame {
 
 			// 톤수 설정
 			User32.INSTANCE.PostMessage(____TRzComboBox_ton, CB_SETCURSEL, info.ton_idx, 0);
-			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_ton);
 			Thread.sleep(waitTime);
+			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_ton);
+			
+			Thread.sleep(waitTime);
+			
 			// 차종 설정
 			User32.INSTANCE.PostMessage(____TRzComboBox_carsort, CB_SETCURSEL, info.car_sort_idx, 0);
 			Thread.sleep(waitTime);
 			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
-			// =============================================================== search price
-			// 는 여기까지만 필요
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
