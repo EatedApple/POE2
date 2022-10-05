@@ -476,31 +476,33 @@ public class CargoMain extends JFrame {
 			User32.INSTANCE.SendMessage(___TBitBtn_newBtn, (int) BM_CLICK, 0, 0); // 신규(F3) 누르기
 			Thread.sleep(100);
 
-			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETFOCUS, 0, 0); // 상차지 포커스
-			Thread.sleep(100);
-			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETTEXT, 0, info.load_addr); // 상차지 텍스트 넣기
-			Thread.sleep(100);
-			User32.INSTANCE.PostMessage(____TEdit9_startAddr, WM_KEYDOWN, VK_RETURN, 0); // 상차지 엔터
+			sendChar(____TEdit9_startAddr, info.load_addr);
+//			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETFOCUS, 0, 0); // 상차지 포커스
+//			Thread.sleep(100);
+//			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETTEXT, 0, info.load_addr); // 상차지 텍스트 넣기
+//			Thread.sleep(100);
+//			User32.INSTANCE.PostMessage(____TEdit9_startAddr, WM_KEYDOWN, VK_RETURN, 0); // 상차지 엔터
 			Thread.sleep(300);
 			closeSearchAddrWindow();
 			Thread.sleep(100);
 			User32.INSTANCE.PostMessage(____TDBGrid, WM_KEYDOWN, VK_RETURN, 0); // 상차지 리스트 엔터
 			Thread.sleep(100);
-			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_KILLFOCUS, 0, 0); // 상차지 포커스 해제
-			Thread.sleep(100);
+//			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_KILLFOCUS, 0, 0); // 상차지 포커스 해제
+//			Thread.sleep(100);
 
-			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_SETFOCUS, 0, 0);
-			Thread.sleep(100);
-			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_SETTEXT, 0, info.alight_addr);
-			Thread.sleep(100);
-			User32.INSTANCE.PostMessage(____TEdit7_endAddr, WM_KEYDOWN, VK_RETURN, 0);
+			sendChar(____TEdit7_endAddr, info.alight_addr);
+//			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_SETFOCUS, 0, 0);
+//			Thread.sleep(100);
+//			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_SETTEXT, 0, info.alight_addr);
+//			Thread.sleep(100);
+//			User32.INSTANCE.PostMessage(____TEdit7_endAddr, WM_KEYDOWN, VK_RETURN, 0);
 			Thread.sleep(300);
 			closeSearchAddrWindow();
 			Thread.sleep(100);
 			User32.INSTANCE.PostMessage(____TDBGrid, WM_KEYDOWN, VK_RETURN, 0);
-			Thread.sleep(100);
-			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_KILLFOCUS, 0, 0);
-			Thread.sleep(100);
+//			Thread.sleep(100);
+//			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_KILLFOCUS, 0, 0);
+//			Thread.sleep(100);
 			closeSearchAddrWindow();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -556,7 +558,7 @@ public class CargoMain extends JFrame {
 			Thread.sleep(100);
 			// 화물 정보
 			sendChar(____TEdit5_more_infomation, info.freight_info);
-//			sendChar(____TEdit5_more_infomation, "샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘");
+			sendChar(____TEdit5_more_infomation, "a");
 			
 			Thread.sleep(100);
 //			User32.INSTANCE.PostMessage(____TMemo, WM_SETFOCUS, 0, 0);
@@ -618,9 +620,6 @@ public class CargoMain extends JFrame {
 			BufferedImage image = capture(TMessageForm, 1);
 			caption += OCR(image);
 			
-			System.out.println(TMessageForm);
-			System.out.println(TButton);
-
 			//User32.INSTANCE.PostMessage(TMessageForm, (int) WM_CLOSE, 0, 0);
 			User32.INSTANCE.PostMessage(TButton, (int) BM_CLICK, 0, 0);
 			return caption;
