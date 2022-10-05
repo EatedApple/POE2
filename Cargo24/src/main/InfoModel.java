@@ -38,7 +38,7 @@ public class InfoModel {
 	
 	public int count = 1; // 대수
 	
-	public String payment_method = "선/찰불"; // 지불 방식
+	public String payment_method = "선/착불"; // 지불 방식
 	public int payment_method_idx = 2;
 	
 	public int price = 0;
@@ -115,13 +115,13 @@ public class InfoModel {
 			this.count = (int) jsonObj.get("count");
 		}
 
-		if (jsonObj.get("payment_method") != null) {
-			this.payment_method = (String) jsonObj.get("payment_method");
-			this.payment_method_idx = Arrays.asList(paymentMethodArray).indexOf(this.payment_method);
-			if (this.payment_method_idx == -1) {
-				this.payment_method_idx = 0;
-			}
-		}
+//		if (jsonObj.get("payment_method") != null) {
+//			this.payment_method = (String) jsonObj.get("payment_method");
+//			this.payment_method_idx = Arrays.asList(paymentMethodArray).indexOf(this.payment_method);
+//			if (this.payment_method_idx == -1) {
+//				this.payment_method_idx = 0;
+//			}
+//		}
 		
 		if (jsonObj.get("price") != null) {
 			this.price = Integer.parseInt(String.valueOf(jsonObj.get("price")));
