@@ -215,6 +215,8 @@ public class CargoMain extends JFrame {
 
 		boolean SendMessageTimeout(HWND ___TBitBtn_registBtn, int bmClick, int i, int j, int fuFlags, int uTimeout,
 				int lpdwResult);
+
+		void PostMessage(int leftFrameParent, int wmCommand, int send_cbn_selchange, HWND ____TRzComboBox_ton);
 	}
 
 	public static void checkMultipleWindow() {
@@ -307,6 +309,13 @@ public class CargoMain extends JFrame {
 	int port = 8000;
 
 	public CargoMain() {
+		this.addWindowListener(new java.awt.event.WindowAdapter() {
+		    @Override
+		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+		    	System.exit(0);
+		    }
+		});
+		
 		this.setTitle(title + "2209211406");
 		int frameH = 100;
 		Dimension ss = Toolkit.getDefaultToolkit().getScreenSize();
@@ -367,6 +376,7 @@ public class CargoMain extends JFrame {
 					// continue;
 				}
 				mappingFileds.put(info.time, 0);
+				closeMessageForm();
 				setAddr(info);
 				loadAddr = getLoadAddrText();
 				alightAddr = getAlightAddrText();
@@ -451,7 +461,6 @@ public class CargoMain extends JFrame {
 						socket.close();
 					}
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -510,14 +519,14 @@ public class CargoMain extends JFrame {
 			// 톤수 설정
 			User32.INSTANCE.PostMessage(____TRzComboBox_ton, CB_SETCURSEL, info.ton_idx, 0);
 			Thread.sleep(100);
-			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_ton);
+			User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_ton);
 
 			Thread.sleep(100);
 
 			// 차종 설정
 			User32.INSTANCE.PostMessage(____TRzComboBox_carsort, CB_SETCURSEL, info.car_sort_idx, 0);
 			Thread.sleep(100);
-			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
+			User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -531,10 +540,10 @@ public class CargoMain extends JFrame {
 
 			Thread.sleep(100);
 
-			// 도착 설정
+//			// 도착 설정
 			User32.INSTANCE.PostMessage(____TComboBox_arrival, CB_SETCURSEL, info.arrival_idx, 0);
 			Thread.sleep(100);
-			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
+			User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
 			Thread.sleep(100);
 			// 지불 방식 운송비구분
 			sendChar(____TwCombo_payment_method, info.payment_method);
@@ -546,32 +555,32 @@ public class CargoMain extends JFrame {
 			sendChar(____TwNumEdit_commission, info.commission + "");
 			Thread.sleep(100);
 			// 화물 정보
-			sendChar(____TEdit5_more_infomation, "");
-			Thread.sleep(100);
 			sendChar(____TEdit5_more_infomation, info.freight_info);
+//			sendChar(____TEdit5_more_infomation, "샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘샘");
+			
 			Thread.sleep(100);
-			User32.INSTANCE.SendMessage(____TMemo, WM_SETFOCUS, 0, 0);
-			Thread.sleep(100);
-
+//			User32.INSTANCE.PostMessage(____TMemo, WM_SETFOCUS, 0, 0);
+//			Thread.sleep(100);
+//
 			sendChar(____TEdit_load_capacity, info.ton_info);
 
 			if (info.mixed_loading.contains("혼적")) {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_mixup, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
-					User32.INSTANCE.SendMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
+					User32.INSTANCE.PostMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
 				}
 			} else {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_mixup, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-					User32.INSTANCE.SendMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
+					User32.INSTANCE.PostMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
 				}
 			}
 
 			if (info.reserved.contains("예약")) {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
-					User32.INSTANCE.SendMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
+					User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
 				}
 			} else {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-					User32.INSTANCE.SendMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
+					User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
 				}
 			}
 		} catch (InterruptedException e) {
@@ -582,30 +591,38 @@ public class CargoMain extends JFrame {
 	}
 
 	public void registBtnClick() {
-		User32.INSTANCE.SendMessageTimeout(___TBitBtn_registBtn, (int) BM_CLICK, 0, 0, 0, 1, 0); // 등록
+		User32.INSTANCE.PostMessage(___TBitBtn_registBtn, BM_CLICK, 0, 0);
+		//User32.INSTANCE.SendMessageTimeout(___TBitBtn_registBtn, (int) BM_CLICK, 0, 0, 0, 1, 0); // 등록
+	}
+	
+	public void closeMessageForm() {
+		HWND TMessageForm = User32.INSTANCE.FindWindow("TMessageForm", null);
+		HWND TButton = User32.INSTANCE.FindWindowEx(TMessageForm, null, "TButton", null);
+		User32.INSTANCE.PostMessage(TButton, (int) BM_CLICK, 0, 0);
 	}
 
 	public String confirmMessageForm() {
 		try {
+			Thread.sleep(500);
 			HWND TMessageForm = User32.INSTANCE.FindWindow("TMessageForm", null);
 			while (TMessageForm == null) {
 				TMessageForm = User32.INSTANCE.FindWindow("TMessageForm", null);
-				Thread.sleep(100);
 			}
-			
+			Thread.sleep(500);
 			HWND TButton = User32.INSTANCE.FindWindowEx(TMessageForm, null, "TButton", null);
+			
 			final char[] title = new char[100];
 			User32.INSTANCE.GetWindowText(TMessageForm, title, title.length);
 			String caption = Native.toString(title);
-			System.out.println("##title## " + caption);
 			
 			BufferedImage image = capture(TMessageForm, 1);
-			if (image != null) {
-				caption += OCR(image);
-			}
+			caption += OCR(image);
 			
-			User32.INSTANCE.SendMessage(TButton, (int) BM_CLICK, 0, 0);
-			User32.INSTANCE.SendMessage(TButton, (int) BM_CLICK, 0, 0);
+			System.out.println(TMessageForm);
+			System.out.println(TButton);
+
+			//User32.INSTANCE.PostMessage(TMessageForm, (int) WM_CLOSE, 0, 0);
+			User32.INSTANCE.PostMessage(TButton, (int) BM_CLICK, 0, 0);
 			return caption;
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -675,12 +692,12 @@ public class CargoMain extends JFrame {
 	}
 
 	public void sendChar(HWND hwnd, String str) {
-		User32.INSTANCE.SendMessage(hwnd, WM_SETFOCUS, 0, 0);
+		User32.INSTANCE.PostMessage(hwnd, WM_SETFOCUS, 0, 0);
 		for (int i = 0; i < str.length(); i++) {
-			User32.INSTANCE.SendMessage(hwnd, WM_CHAR, str.charAt(i), 0);
+			User32.INSTANCE.PostMessage(hwnd, WM_CHAR, str.charAt(i), 0);
 		}
-		User32.INSTANCE.SendMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
-		User32.INSTANCE.SendMessage(hwnd, WM_KILLFOCUS, 0, 0);
+		User32.INSTANCE.PostMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
+		User32.INSTANCE.PostMessage(hwnd, WM_KILLFOCUS, 0, 0);
 	}
 
 	static int MakeWParam(int loWord, int hiWord) {
@@ -748,13 +765,14 @@ public class CargoMain extends JFrame {
 		//			User32.INSTANCE.PostMessage(_____TRealGrid, WM_LBUTTONUP, MK_LBUTTON, MakeWParam(50, 50));
 		//			Thread.sleep(200);
 		
-					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
-					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
+//					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
+//					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
 	}
 
 	public String OCR(BufferedImage image) {
 		try {
-
+			if (image == null) { return null; }
+			
 			ITesseract tesseract = new Tesseract();
 			Path root = FileSystems.getDefault().getPath("").toAbsolutePath();
 			Path filePath = Paths.get(root.toString(), "tessdata");
@@ -762,7 +780,7 @@ public class CargoMain extends JFrame {
 			tesseract.setLanguage("kor+eng");
 			String result = tesseract.doOCR(image);
 			return result;
-		} catch (TesseractException e) {
+		} catch (Exception e) {
 			return null;
 		}
 	}
@@ -833,13 +851,10 @@ public class CargoMain extends JFrame {
 	}
 
 	private static final String KILL = "taskkill /f /pid ";
-
 	public static void killProcess(int pid) throws Exception {
-
 		Runtime.getRuntime().exec(KILL + pid);
-
 	}
-
+	
 	public static String imgToBase64String(final RenderedImage img, final String formatName) {
 		final ByteArrayOutputStream os = new ByteArrayOutputStream();
 		try (final OutputStream b64os = Base64.getEncoder().wrap(os)) {
