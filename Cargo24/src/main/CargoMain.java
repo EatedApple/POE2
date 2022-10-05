@@ -476,33 +476,31 @@ public class CargoMain extends JFrame {
 			User32.INSTANCE.SendMessage(___TBitBtn_newBtn, (int) BM_CLICK, 0, 0); // 신규(F3) 누르기
 			Thread.sleep(100);
 
-			sendChar(____TEdit9_startAddr, info.load_addr);
-//			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETFOCUS, 0, 0); // 상차지 포커스
-//			Thread.sleep(100);
-//			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETTEXT, 0, info.load_addr); // 상차지 텍스트 넣기
-//			Thread.sleep(100);
-//			User32.INSTANCE.PostMessage(____TEdit9_startAddr, WM_KEYDOWN, VK_RETURN, 0); // 상차지 엔터
+			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETFOCUS, 0, 0); // 상차지 포커스
+			Thread.sleep(100);
+			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETTEXT, 0, info.load_addr); // 상차지 텍스트 넣기
+			Thread.sleep(100);
+			User32.INSTANCE.PostMessage(____TEdit9_startAddr, WM_KEYDOWN, VK_RETURN, 0); // 상차지 엔터
 			Thread.sleep(300);
 			closeSearchAddrWindow();
 			Thread.sleep(100);
 			User32.INSTANCE.PostMessage(____TDBGrid, WM_KEYDOWN, VK_RETURN, 0); // 상차지 리스트 엔터
 			Thread.sleep(100);
-//			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_KILLFOCUS, 0, 0); // 상차지 포커스 해제
-//			Thread.sleep(100);
+			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_KILLFOCUS, 0, 0); // 상차지 포커스 해제
+			Thread.sleep(100);
 
-			sendChar(____TEdit7_endAddr, info.alight_addr);
-//			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_SETFOCUS, 0, 0);
-//			Thread.sleep(100);
-//			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_SETTEXT, 0, info.alight_addr);
-//			Thread.sleep(100);
-//			User32.INSTANCE.PostMessage(____TEdit7_endAddr, WM_KEYDOWN, VK_RETURN, 0);
+			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_SETFOCUS, 0, 0);
+			Thread.sleep(100);
+			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_SETTEXT, 0, info.alight_addr);
+			Thread.sleep(100);
+			User32.INSTANCE.PostMessage(____TEdit7_endAddr, WM_KEYDOWN, VK_RETURN, 0);
 			Thread.sleep(300);
 			closeSearchAddrWindow();
 			Thread.sleep(100);
 			User32.INSTANCE.PostMessage(____TDBGrid, WM_KEYDOWN, VK_RETURN, 0);
-//			Thread.sleep(100);
-//			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_KILLFOCUS, 0, 0);
-//			Thread.sleep(100);
+			Thread.sleep(100);
+			User32.INSTANCE.SendMessage(____TEdit7_endAddr, WM_KILLFOCUS, 0, 0);
+			Thread.sleep(100);
 			closeSearchAddrWindow();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -748,7 +746,7 @@ public class CargoMain extends JFrame {
 	}
 
 	public void closeSearchAddrWindow() throws InterruptedException {
-		//			Thread.sleep(200);
+					Thread.sleep(200);
 					HWND TfrmAddrSearchXP = User32.INSTANCE.FindWindow("TfrmAddrSearchXP", null);
 		//			HWND _TRzPanel = User32.INSTANCE.FindWindowEx(TfrmAddrSearchXP, null, "TRzPanel", null);
 		//			HWND __TRzPageControl = User32.INSTANCE.FindWindowEx(_TRzPanel, null, "TRzPageControl", null);
@@ -764,8 +762,8 @@ public class CargoMain extends JFrame {
 		//			User32.INSTANCE.PostMessage(_____TRealGrid, WM_LBUTTONUP, MK_LBUTTON, MakeWParam(50, 50));
 		//			Thread.sleep(200);
 		
-//					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
-//					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
+					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
+					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
 	}
 
 	public String OCR(BufferedImage image) {
