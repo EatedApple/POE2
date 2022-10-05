@@ -587,22 +587,28 @@ public class CargoMain extends JFrame {
 
 	public String confirmMessageForm() {
 		try {
-			Thread.sleep(500);
 			HWND TMessageForm = User32.INSTANCE.FindWindow("TMessageForm", null);
-			if (TMessageForm != null) {
-				HWND TButton = User32.INSTANCE.FindWindowEx(TMessageForm, null, "TButton", null);
-				final char[] title = new char[100];
-				User32.INSTANCE.GetWindowText(TMessageForm, title, title.length);
-				String caption = Native.toString(title);
-				caption += OCR(capture(TMessageForm, 1));
-
-				User32.INSTANCE.SendMessage(TButton, (int) BM_CLICK, 0, 0);
-				User32.INSTANCE.SendMessage(TButton, (int) BM_CLICK, 0, 0);
-				return caption;
+			while (TMessageForm == null) {
+				TMessageForm = User32.INSTANCE.FindWindow("TMessageForm", null);
+				Thread.sleep(100);
 			}
-
-			return null;
+			
+			HWND TButton = User32.INSTANCE.FindWindowEx(TMessageForm, null, "TButton", null);
+			final char[] title = new char[100];
+			User32.INSTANCE.GetWindowText(TMessageForm, title, title.length);
+			String caption = Native.toString(title);
+			System.out.println("##title## " + caption);
+			
+			BufferedImage image = capture(TMessageForm, 1);
+			if (image != null) {
+				caption += OCR(image);
+			}
+			
+			User32.INSTANCE.SendMessage(TButton, (int) BM_CLICK, 0, 0);
+			User32.INSTANCE.SendMessage(TButton, (int) BM_CLICK, 0, 0);
+			return caption;
 		} catch (Exception e) {
+			System.out.println(e.getMessage());
 			return null;
 		}
 	}
@@ -757,7 +763,6 @@ public class CargoMain extends JFrame {
 			String result = tesseract.doOCR(image);
 			return result;
 		} catch (TesseractException e) {
-			JOptionPane.showMessageDialog(null, "err ##" + e.getMessage());
 			return null;
 		}
 	}
@@ -771,47 +776,48 @@ public class CargoMain extends JFrame {
 
 		return capture(__TXiPanel_distanceAndPrice, 1);
 	}
-
-	private static BufferedImage getPictureInfoPanel() {
-		return capture(___TPanel5, 1);
-	}
-
+	
 	public static BufferedImage capture(HWND hWnd, int multiply) {
 
-		HDC hdcWindow = User32.INSTANCE.GetDC(hWnd);
-		HDC hdcMemDC = GDI32.INSTANCE.CreateCompatibleDC(hdcWindow);
+		try {
+			HDC hdcWindow = User32.INSTANCE.GetDC(hWnd);
+			HDC hdcMemDC = GDI32.INSTANCE.CreateCompatibleDC(hdcWindow);
 
-		RECT bounds = new RECT();
-		User32Extra.INSTANCE.GetClientRect(hWnd, bounds);
+			RECT bounds = new RECT();
+			User32Extra.INSTANCE.GetClientRect(hWnd, bounds);
 
-		int width = bounds.right - bounds.left;
-		int height = bounds.bottom - bounds.top;
+			int width = bounds.right - bounds.left;
+			int height = bounds.bottom - bounds.top;
 
-		HBITMAP hBitmap = GDI32.INSTANCE.CreateCompatibleBitmap(hdcWindow, width, height);
+			HBITMAP hBitmap = GDI32.INSTANCE.CreateCompatibleBitmap(hdcWindow, width, height);
 
-		HANDLE hOld = GDI32.INSTANCE.SelectObject(hdcMemDC, hBitmap);
-		GDI32Extra.INSTANCE.BitBlt(hdcMemDC, 0, 0, width, height, hdcWindow, 0, 0, WinGDIExtra.SRCCOPY);
+			HANDLE hOld = GDI32.INSTANCE.SelectObject(hdcMemDC, hBitmap);
+			GDI32Extra.INSTANCE.BitBlt(hdcMemDC, 0, 0, width, height, hdcWindow, 0, 0, WinGDIExtra.SRCCOPY);
 
-		GDI32.INSTANCE.SelectObject(hdcMemDC, hOld);
-		GDI32.INSTANCE.DeleteDC(hdcMemDC);
+			GDI32.INSTANCE.SelectObject(hdcMemDC, hOld);
+			GDI32.INSTANCE.DeleteDC(hdcMemDC);
 
-		BITMAPINFO bmi = new BITMAPINFO();
-		bmi.bmiHeader.biWidth = width;
-		bmi.bmiHeader.biHeight = -height;
-		bmi.bmiHeader.biPlanes = 1;
-		bmi.bmiHeader.biBitCount = 32;
-		bmi.bmiHeader.biCompression = WinGDI.BI_RGB;
+			BITMAPINFO bmi = new BITMAPINFO();
+			bmi.bmiHeader.biWidth = width;
+			bmi.bmiHeader.biHeight = -height;
+			bmi.bmiHeader.biPlanes = 1;
+			bmi.bmiHeader.biBitCount = 32;
+			bmi.bmiHeader.biCompression = WinGDI.BI_RGB;
 
-		Memory buffer = new Memory(width * height * 4);
-		GDI32.INSTANCE.GetDIBits(hdcWindow, hBitmap, 0, height, buffer, bmi, WinGDI.DIB_RGB_COLORS);
+			Memory buffer = new Memory(width * height * 4);
+			GDI32.INSTANCE.GetDIBits(hdcWindow, hBitmap, 0, height, buffer, bmi, WinGDI.DIB_RGB_COLORS);
 
-		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		image.setRGB(0, 0, width, height, buffer.getIntArray(0, width * height), 0, width);
+			BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+			image.setRGB(0, 0, width, height, buffer.getIntArray(0, width * height), 0, width);
 
-		GDI32.INSTANCE.DeleteObject(hBitmap);
-		User32.INSTANCE.ReleaseDC(hWnd, hdcWindow);
+			GDI32.INSTANCE.DeleteObject(hBitmap);
+			User32.INSTANCE.ReleaseDC(hWnd, hdcWindow);
 
-		return resize(image, width * multiply, height * multiply);
+			return resize(image, width * multiply, height * multiply);
+		} catch (Exception e) {
+			return null;
+		}
+		
 
 	}
 
