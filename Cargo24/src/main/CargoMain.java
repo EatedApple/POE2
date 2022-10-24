@@ -412,6 +412,7 @@ public class CargoMain extends JFrame {
 
 					final BufferedImage priceImg = getDistancePrice();
 					String ocr = OCR(priceImg);
+					System.out.println(ocr);
 					String arr = Arrays.toString(ocr.split(":"));
 
 					if (arr.length() < 3) {
@@ -421,7 +422,7 @@ public class CargoMain extends JFrame {
 					String distance = ocr.split(":")[1].trim().replace("\n", "").replaceAll("[^\\d.]", "").replace("?", "7");
 					String price = ocr.split(":")[2].replaceAll("[^\\d.]", "").replace("?", "7");
 					
-					String imageBase64 = imgToBase64String(priceImg, "png");
+					//String imageBase64 = imgToBase64String(priceImg, "png");
 					res.put("distance", distance);
 					res.put("ocr", ocr.replace("\n", "").trim());
 					res.put("price", price);
@@ -537,23 +538,26 @@ public class CargoMain extends JFrame {
 			User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
 			Thread.sleep(100);
 			// 지불 방식 운송비구분
-			sendChar(____TwCombo_payment_method, info.payment_method);
+			User32.INSTANCE.SendMessage(____TwCombo_payment_method, WM_SETTEXT, 0, info.payment_method);
+			//sendChar(____TwCombo_payment_method, info.payment_method);
 			Thread.sleep(100);
 			// 운송료
 			sendChar(____TwNumEdit_shipping_fee, info.price + "");
+			//User32.INSTANCE.SendMessage(____TwNumEdit_shipping_fee, WM_SETTEXT, 0, info.price + "");
 			Thread.sleep(100);
 			// 수수료
 			sendChar(____TwNumEdit_commission, info.commission + "");
+			//User32.INSTANCE.SendMessage(____TwNumEdit_commission, WM_SETTEXT, 0, info.commission + "");
 			Thread.sleep(100);
 			// 화물 정보
 			sendChar(____TEdit5_more_infomation, info.freight_info);
-			
 			Thread.sleep(100);
-//			User32.INSTANCE.PostMessage(____TMemo, WM_SETFOCUS, 0, 0);
-//			Thread.sleep(100);
-//
-			sendChar(____TEdit_load_capacity, info.ton_info);
 
+			// 화물적재량
+			User32.INSTANCE.SendMessage(____TEdit_load_capacity, WM_SETTEXT, 0, info.ton_info + "");
+			//sendChar(____TEdit_load_capacity, info.ton_info);
+			Thread.sleep(100);
+			
 			if (info.mixed_loading.contains("혼적")) {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_mixup, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
 					User32.INSTANCE.PostMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
@@ -773,6 +777,12 @@ public class CargoMain extends JFrame {
 	}
 
 	private static BufferedImage getDistancePrice() {
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		if (__TXiPanel_distanceAndPrice == null) {
 			HWND _TRzPanel = User32.INSTANCE.FindWindowEx(TfrmCargoOrderOld, null, "TRzPanel", null);
 			HWND _TRzPanel2 = User32.INSTANCE.FindWindowEx(TfrmCargoOrderOld, _TRzPanel, "TRzPanel", null);

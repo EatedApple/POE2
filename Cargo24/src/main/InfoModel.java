@@ -61,90 +61,91 @@ public class InfoModel {
 		Object obj = null;
 		try {
 			obj = parser.parse(data);
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		JSONObject jsonObj = (JSONObject) obj;
-		this.type = (String) jsonObj.get("type");
-		
-		if (jsonObj.get("time") != null) {
-			this.time = Integer.parseInt(String.valueOf(jsonObj.get("time")));
-		}
-		
-		if (jsonObj.get("load_addr") != null) {
-			this.load_addr = (String) jsonObj.get("load_addr");
-		}
-		if (jsonObj.get("alight_addr") != null) {
-			this.alight_addr = (String) jsonObj.get("alight_addr");
-		}
-
-		if (jsonObj.get("car_ton") != null) {
-			this.ton = Double.parseDouble(String.valueOf(jsonObj.get("car_ton")).replaceAll("[^\\d.]", ""));
-			this.ton_idx = Arrays.asList(tonArray).indexOf(ton);
-			DecimalFormat format = new DecimalFormat("0.##");
-			this.ton_info = format.format((this.ton * 1.1));
-		}
-
-		if (ton < 1) {
-			this.car_sort_array = this.sort0_1;
-		} else if (ton >= 1 && ton < 5) {
-			this.car_sort_array = this.sort1_3;
-		} else {
-			this.car_sort_array = this.sort5_25;
-		}
-
-		if (jsonObj.get("car_sort") != null) {
-			this.car_sort = (String) jsonObj.get("car_sort");
-			this.car_sort_idx = Arrays.asList(car_sort_array).indexOf(car_sort);
-			if (this.car_sort_idx == -1) {
-				this.car_sort_idx = 0;
-				this.car_sort = "해당 톤수에 " + this.car_sort + "x";
+			JSONObject jsonObj = (JSONObject) obj;
+			this.type = (String) jsonObj.get("type");
+			
+			if (jsonObj.get("time") != null) {
+				this.time = Integer.parseInt(String.valueOf(jsonObj.get("time")));
 			}
-		} 
-
-		if (jsonObj.get("arrival") != null) {
-			this.arrival = (String) jsonObj.get("arrival");
-			this.arrival_idx = Arrays.asList(arrivalArray).indexOf(this.arrival);
-			if (this.arrival_idx == -1) {
-				this.arrival_idx = 0;
+			
+			if (jsonObj.get("load_addr") != null) {
+				this.load_addr = (String) jsonObj.get("load_addr");
 			}
-		}
+			if (jsonObj.get("alight_addr") != null) {
+				this.alight_addr = (String) jsonObj.get("alight_addr");
+			}
 
-		if (jsonObj.get("count") != null) {
-			this.count = (int) jsonObj.get("count");
-		}
+			if (jsonObj.get("car_ton") != null) {
+				this.ton = Double.parseDouble(String.valueOf(jsonObj.get("car_ton")).replaceAll("[^\\d.]", ""));
+				this.ton_idx = Arrays.asList(tonArray).indexOf(ton);
+				DecimalFormat format = new DecimalFormat("0.##");
+				this.ton_info = format.format((this.ton * 1.1));
+			}
 
-//		if (jsonObj.get("payment_method") != null) {
-//			this.payment_method = (String) jsonObj.get("payment_method");
-//			this.payment_method_idx = Arrays.asList(paymentMethodArray).indexOf(this.payment_method);
-//			if (this.payment_method_idx == -1) {
-//				this.payment_method_idx = 0;
+			if (ton < 1) {
+				this.car_sort_array = this.sort0_1;
+			} else if (ton >= 1 && ton < 5) {
+				this.car_sort_array = this.sort1_3;
+			} else {
+				this.car_sort_array = this.sort5_25;
+			}
+
+			if (jsonObj.get("car_sort") != null) {
+				this.car_sort = (String) jsonObj.get("car_sort");
+				this.car_sort_idx = Arrays.asList(car_sort_array).indexOf(car_sort);
+				if (this.car_sort_idx == -1) {
+					this.car_sort_idx = 0;
+					this.car_sort = "해당 톤수에 " + this.car_sort + "x";
+				}
+			} 
+
+			if (jsonObj.get("arrival") != null) {
+				this.arrival = (String) jsonObj.get("arrival");
+				this.arrival_idx = Arrays.asList(arrivalArray).indexOf(this.arrival);
+				if (this.arrival_idx == -1) {
+					this.arrival_idx = 0;
+				}
+			}
+
+			if (jsonObj.get("count") != null) {
+				this.count = (int) jsonObj.get("count");
+			}
+
+//			if (jsonObj.get("payment_method") != null) {
+//				this.payment_method = (String) jsonObj.get("payment_method");
+//				this.payment_method_idx = Arrays.asList(paymentMethodArray).indexOf(this.payment_method);
+//				if (this.payment_method_idx == -1) {
+//					this.payment_method_idx = 0;
+//				}
 //			}
-//		}
-		
-		if (jsonObj.get("price") != null) {
-			this.price = Integer.parseInt(String.valueOf(jsonObj.get("price")));
-		}
-		
-		if (jsonObj.get("commission") != null) {
-			this.commission = Integer.parseInt(String.valueOf(jsonObj.get("commission")));
-		}
-		
-		if (jsonObj.get("freight_info") != null) {
-			this.freight_info = (String) jsonObj.get("freight_info");
-		}
-		
-		if (jsonObj.get("mixed_loading") != null) {
-			this.mixed_loading = (String) jsonObj.get("mixed_loading");
-		}
-		
-		if (jsonObj.get("zin_36") != null) {
-			this.zin_36 = (String) jsonObj.get("zin_36");
-		}
+			
+			if (jsonObj.get("price") != null) {
+				this.price = Integer.parseInt(String.valueOf(jsonObj.get("price")));
+			}
+			
+			if (jsonObj.get("commission") != null) {
+				this.commission = Integer.parseInt(String.valueOf(jsonObj.get("commission")));
+			}
+			
+			if (jsonObj.get("freight_info") != null) {
+				this.freight_info = (String) jsonObj.get("freight_info");
+			}
+			
+			if (jsonObj.get("mixed_loading") != null) {
+				this.mixed_loading = (String) jsonObj.get("mixed_loading");
+			}
+			
+			if (jsonObj.get("zin_36") != null) {
+				this.zin_36 = (String) jsonObj.get("zin_36");
+			}
 
-		if (jsonObj.get("reserved") != null) {
-			this.reserved = (String) jsonObj.get("reserved");
+			if (jsonObj.get("reserved") != null) {
+				this.reserved = (String) jsonObj.get("reserved");
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return;
 		}
+	
 	}
 }
