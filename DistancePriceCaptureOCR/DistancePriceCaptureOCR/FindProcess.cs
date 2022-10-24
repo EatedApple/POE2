@@ -324,14 +324,14 @@ namespace DistancePriceCaptureOCR
             {
                 if (SendMessage(____TCheckBox_mixup, BM_GETCHECK, 0, 0) == BST_UNCHECKED)
                 {
-                    SendMessage(____TCheckBox_mixup, (int)BM_CLICK, 0, 0);
+                    PostMessage(____TCheckBox_mixup, (int)BM_CLICK, 0, 0);
                 }
             }
             else
             {
                 if (SendMessage(____TCheckBox_mixup, BM_GETCHECK, 0, 0) == BST_CHECKED)
                 {
-                    SendMessage(____TCheckBox_mixup, (int)BM_CLICK, 0, 0);
+                    PostMessage(____TCheckBox_mixup, (int)BM_CLICK, 0, 0);
                 }
             }
 
@@ -339,14 +339,14 @@ namespace DistancePriceCaptureOCR
             {
                 if (SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_UNCHECKED)
                 {
-                    SendMessage(____TCheckBox_reserved, (int)BM_CLICK, 0, 0);
+                    PostMessage(____TCheckBox_reserved, (int)BM_CLICK, 0, 0);
                 }
             }
             else
             {
                 if (SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_CHECKED)
                 {
-                    SendMessage(____TCheckBox_reserved, (int)BM_CLICK, 0, 0);
+                    PostMessage(____TCheckBox_reserved, (int)BM_CLICK, 0, 0);
                 }
             }
         }
