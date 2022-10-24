@@ -334,10 +334,6 @@ public class CargoMain extends JFrame {
 		setVisible(true);
 		getHwnd();
 
-		BufferedReader br = null;
-		BufferedWriter bw = null;
-		int BUF_SIZE = 1024 * 7;
-
 		textArea.append("서버 시작..\n");
 		ServerSocket serverSocket = null;
 		try {
@@ -362,8 +358,9 @@ public class CargoMain extends JFrame {
 					continue;
 				}
 
-				br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf8"), BUF_SIZE);
-				bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+				int BUF_SIZE = 1024 * 7;
+				BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf8"), BUF_SIZE);
+				BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
 				String params = br.readLine();
 				textArea.append(params + "\n");
@@ -448,6 +445,7 @@ public class CargoMain extends JFrame {
 				res.put("msg", ex.getMessage());
 				res.put("proc", 0);
 				try {
+					BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 					bw.write(res.toJSONString());
 					bw.flush();
 					if (socket != null && socket.isConnected()) {
