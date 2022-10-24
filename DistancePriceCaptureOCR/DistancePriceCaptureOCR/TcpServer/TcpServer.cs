@@ -33,33 +33,8 @@ namespace DistancePriceCaptureOCR
             listener.Stop();
         }
 
-        public void test()
-        {
-            var car_ton = 0.5;
-
-            Debug.WriteLine(string.Format("{0:0.0}", car_ton * 1.1));
-
-            car_ton = 1.4;
-            Debug.WriteLine(string.Format("{0:0.0}", car_ton * 1.1));
-
-            car_ton = 2.5;
-            Debug.WriteLine(string.Format("{0:0.0}", car_ton * 1.1));
-
-            car_ton = 3.5;
-            Debug.WriteLine(string.Format("{0:0.0}", car_ton * 1.1));
-
-            car_ton = 5;
-            Debug.WriteLine(string.Format("{0:0.0}", car_ton * 1.1));
-
-            car_ton = 8;
-            Debug.WriteLine(string.Format("{0:0.0}", car_ton * 1.1));
-
-            car_ton = 11;
-            Debug.WriteLine(string.Format("{0:0.0}", car_ton * 1.1));
-        }
         private void startServer()
         {
-            test();
             listener = new TcpListener(IPAddress.Any, 8000);
             listener.Server.ReceiveTimeout = 10000;
             listener.Start();

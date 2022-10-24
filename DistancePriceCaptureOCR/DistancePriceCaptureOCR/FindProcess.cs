@@ -257,17 +257,17 @@ namespace DistancePriceCaptureOCR
 
             SendMessage(____TEdit9_startAddr, WM_SETFOCUS, 0, 0); // 상차지 포커스
             SendMessage(____TEdit9_startAddr, WM_SETTEXT, 0, info.load_addr); // 상차지 텍스트 넣기
-            SendMessage(____TEdit9_startAddr, WM_KEYDOWN, VK_RETURN, 1); // 상차지 엔터
+            PostMessage(____TEdit9_startAddr, WM_KEYDOWN, VK_RETURN, 1); // 상차지 엔터
             closeSearchAddrWindow(1000);
-            SendMessage(____TDBGrid, WM_KEYDOWN, VK_RETURN, 0); // 상차지 리스트 엔터
+            PostMessage(____TDBGrid, WM_KEYDOWN, VK_RETURN, 0); // 상차지 리스트 엔터
             SendMessage(____TEdit9_startAddr, WM_KILLFOCUS, 0, 0); // 상차지 포커스 해제
             
 
             SendMessage(____TEdit7_endAddr, WM_SETFOCUS, 0, 0); // 하차지 포커스
             SendMessage(____TEdit7_endAddr, WM_SETTEXT, 0, info.alight_addr); // 하차지 텍스트 넣기
-            SendMessage(____TEdit7_endAddr, WM_KEYDOWN, VK_RETURN, 1); // 하차지 엔터
+            PostMessage(____TEdit7_endAddr, WM_KEYDOWN, VK_RETURN, 1); // 하차지 엔터
             closeSearchAddrWindow(1000);
-            SendMessage(____TDBGrid, WM_KEYDOWN, VK_RETURN, 0); // 하차지 리스트 엔터
+            PostMessage(____TDBGrid, WM_KEYDOWN, VK_RETURN, 0); // 하차지 리스트 엔터
             SendMessage(____TEdit7_endAddr, WM_KILLFOCUS, 0, 0); // 하차지 포커스 해제
             
             SendMessage(____TRzComboBox_ton, CB_SETCURSEL, info.ton_idx, 1);
@@ -283,11 +283,11 @@ namespace DistancePriceCaptureOCR
                 int send_cbn_selchange = MakeWParam(leftFrameParent, (int)CBN_SELCHANGE);
 
                 // 톤수 설정
-                SendMessage(____TRzComboBox_ton, CB_SETCURSEL, info.ton_idx, 0);
-                SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_ton);
+                PostMessage(____TRzComboBox_ton, CB_SETCURSEL, info.ton_idx, 0);
+                PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_ton);
                 // 차종 설정
-                SendMessage(____TRzComboBox_carsort, CB_SETCURSEL, info.car_sort_idx, 0);
-                SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
+                PostMessage(____TRzComboBox_carsort, CB_SETCURSEL, info.car_sort_idx, 0);
+                PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
             }
             catch (Exception e)
             {
@@ -303,8 +303,8 @@ namespace DistancePriceCaptureOCR
             Thread.Sleep(100);
 
             //			// 도착 설정
-            SendMessage(____TComboBox_arrival, CB_SETCURSEL, info.arrival_idx, 0);
-            SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
+            PostMessage(____TComboBox_arrival, CB_SETCURSEL, info.arrival_idx, 0);
+            PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
             // 지불 방식 운송비구분
             sendChar(____TwCombo_payment_method, info.payment_method);
             Thread.Sleep(100);
