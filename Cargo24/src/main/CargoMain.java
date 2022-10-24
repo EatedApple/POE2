@@ -369,13 +369,6 @@ public class CargoMain extends JFrame {
 				textArea.append(params + "\n");
 
 				InfoModel info = new InfoModel(params);
-				// info.price = 10000;
-				if (mappingFileds.get(info.time) != null) {
-					// textArea.append("완료 중복 시간");
-					// socket.close();
-					// continue;
-				}
-				mappingFileds.put(info.time, 0);
 				closeMessageForm();
 				setAddr(info);
 				loadAddr = getLoadAddrText();
@@ -405,11 +398,7 @@ public class CargoMain extends JFrame {
 						}
 						msg += confirmMsg;
 					}
-
-//					if (registVerification(info)) {
-//						msg += " / 검증(" + info.zin_36 + ")목록확인 존재o, 상태확인 필요)";
-//					}
-
+					
 					String memo = getMemo();
 
 					String log = "등록\n[params]" + params + "\n" + "[msg]" + msg + "\n" + "[memo]" + memo + "\n"
@@ -431,8 +420,12 @@ public class CargoMain extends JFrame {
 					if (arr.length() < 3) {
 						throw new Exception("요금정보 불러오기 실패");
 					}
-					String price = ocr.split(":")[2].replace("[^\\d.]", "").replace("?", "7");
+					
+					String distance = ocr.split(":")[1].trim().replace("\n", "").replaceAll("[^\\d.]", "").replace("?", "7");
+					String price = ocr.split(":")[2].replaceAll("[^\\d.]", "").replace("?", "7");
+					
 					String imageBase64 = imgToBase64String(priceImg, "png");
+					res.put("distance", distance);
 					res.put("ocr", ocr.replace("\n", "").trim());
 					res.put("price", price);
 
@@ -556,7 +549,6 @@ public class CargoMain extends JFrame {
 			Thread.sleep(100);
 			// 화물 정보
 			sendChar(____TEdit5_more_infomation, info.freight_info);
-			sendChar(____TEdit5_more_infomation, "a");
 			
 			Thread.sleep(100);
 //			User32.INSTANCE.PostMessage(____TMemo, WM_SETFOCUS, 0, 0);
