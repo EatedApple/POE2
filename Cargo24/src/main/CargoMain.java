@@ -332,7 +332,6 @@ public class CargoMain extends JFrame {
 
 		add(scrollPane);
 		setVisible(true);
-		getHwnd();
 
 		textArea.append("서버 시작..\n");
 		ServerSocket serverSocket = null;
@@ -357,6 +356,8 @@ public class CargoMain extends JFrame {
 					socket.close();
 					continue;
 				}
+				
+				getHwnd();
 
 				int BUF_SIZE = 1024 * 7;
 				BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf8"), BUF_SIZE);
@@ -532,30 +533,26 @@ public class CargoMain extends JFrame {
 
 			Thread.sleep(100);
 
-//			// 도착 설정
+			// 도착 설정
 			User32.INSTANCE.PostMessage(____TComboBox_arrival, CB_SETCURSEL, info.arrival_idx, 0);
 			Thread.sleep(100);
 			User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
 			Thread.sleep(100);
+			
 			// 지불 방식 운송비구분
-			User32.INSTANCE.SendMessage(____TwCombo_payment_method, WM_SETTEXT, 0, info.payment_method);
-			//sendChar(____TwCombo_payment_method, info.payment_method);
+			sendChar(____TwCombo_payment_method, info.payment_method);
 			Thread.sleep(100);
 			// 운송료
 			sendChar(____TwNumEdit_shipping_fee, info.price + "");
-			//User32.INSTANCE.SendMessage(____TwNumEdit_shipping_fee, WM_SETTEXT, 0, info.price + "");
 			Thread.sleep(100);
 			// 수수료
 			sendChar(____TwNumEdit_commission, info.commission + "");
-			//User32.INSTANCE.SendMessage(____TwNumEdit_commission, WM_SETTEXT, 0, info.commission + "");
 			Thread.sleep(100);
 			// 화물 정보
 			sendChar(____TEdit5_more_infomation, info.freight_info);
 			Thread.sleep(100);
-
 			// 화물적재량
-			User32.INSTANCE.SendMessage(____TEdit_load_capacity, WM_SETTEXT, 0, info.ton_info + "");
-			//sendChar(____TEdit_load_capacity, info.ton_info);
+			sendChar(____TEdit_load_capacity, info.ton_info);
 			Thread.sleep(100);
 			
 			if (info.mixed_loading.contains("혼적")) {
@@ -682,7 +679,9 @@ public class CargoMain extends JFrame {
 		User32.INSTANCE.PostMessage(hwnd, WM_LBUTTONUP, MK_LBUTTON, 1);
 	}
 
-	public void sendChar(HWND hwnd, String str) {
+	public void sendChar(HWND hwnd, String str) throws InterruptedException {
+
+		System.out.println(hwnd + "####" + str);
 		User32.INSTANCE.PostMessage(hwnd, WM_SETFOCUS, 0, 0);
 		for (int i = 0; i < str.length(); i++) {
 			User32.INSTANCE.PostMessage(hwnd, WM_CHAR, str.charAt(i), 0);
