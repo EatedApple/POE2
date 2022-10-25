@@ -383,7 +383,7 @@ public class CargoMain extends JFrame {
 
 				if (info.type.contains("regist")) {
 					setRegistOption(info);
-					registBtnClick();
+					//registBtnClick();
 					String confirmMsg = confirmMessageForm();
 					String msg = "";
 
@@ -528,6 +528,7 @@ public class CargoMain extends JFrame {
 
 	public void setRegistOption(InfoModel info) {
 		try {
+			System.out.println("#######setRegistOption start");
 			int leftFrameParent = User32.INSTANCE.GetWindowLongPtr(____TRzComboBox_ton, -12);
 			int send_cbn_selchange = MakeWParam(leftFrameParent, CBN_SELCHANGE);
 
@@ -539,9 +540,6 @@ public class CargoMain extends JFrame {
 			User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
 			Thread.sleep(100);
 			
-			// 지불 방식 운송비구분
-			sendChar(____TwCombo_payment_method, info.payment_method);
-			Thread.sleep(100);
 			// 운송료
 			sendChar(____TwNumEdit_shipping_fee, info.price + "");
 			Thread.sleep(100);
@@ -554,7 +552,9 @@ public class CargoMain extends JFrame {
 			// 화물적재량
 			sendChar(____TEdit_load_capacity, info.ton_info);
 			Thread.sleep(100);
-			
+			// 지불 방식 운송비구분
+			sendChar(____TwCombo_payment_method, info.payment_method);
+			Thread.sleep(100);
 			if (info.mixed_loading.contains("혼적")) {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_mixup, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
 					User32.INSTANCE.PostMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
@@ -574,6 +574,9 @@ public class CargoMain extends JFrame {
 					User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
 				}
 			}
+			
+			System.out.println("#######setRegistOption end");
+			registBtnClick();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
