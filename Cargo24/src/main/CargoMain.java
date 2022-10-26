@@ -118,6 +118,8 @@ public class CargoMain extends JFrame {
 	static HWND ____TEdit5_more_infomation; // 추가정보
 	static HWND ____TMemo; // 화물정보
 
+	
+	static HWND ____TCheckBox_alone; // 독차
 	static HWND ____TCheckBox_mixup; // 혼적
 	static HWND ____TEdit_load_capacity; // 적재 중량
 	static HWND ___TBitBtn_search_btn; // 검색 버튼
@@ -258,6 +260,7 @@ public class CargoMain extends JFrame {
 		//
 
 		HWND ____TPanel2 = User32.INSTANCE.FindWindowEx(___TPanel4_1, ____TPanel1, "TPanel", null);
+		____TCheckBox_alone = User32.INSTANCE.FindWindowEx(____TPanel2, null, null, "독차");
 		____TCheckBox_mixup = User32.INSTANCE.FindWindowEx(____TPanel2, null, null, "혼적");
 
 		___TPanel5 = User32.INSTANCE.FindWindowEx(__TPanel4, ___TPanel4_1, "TPanel", null);
@@ -526,6 +529,8 @@ public class CargoMain extends JFrame {
 	public void setRegistOption(InfoModel info) {
 		try {
 	           // 지불 방식 운송비구분
+		    User32.INSTANCE.SendMessage(____TwCombo_payment_method, EM_SETSEL, 0, -1);
+		    
             sendChar(____TwCombo_payment_method, "선/착불");
             Thread.sleep(200);
 			// 운송료
@@ -546,6 +551,10 @@ public class CargoMain extends JFrame {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_mixup, BM_GETCHECK, 0, 0) == BST_CHECKED) {
 					User32.INSTANCE.PostMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
 				}
+				
+                if (User32.INSTANCE.SendMessage(____TCheckBox_alone, BM_GETCHECK, 0, 0) != BST_CHECKED) {
+                    User32.INSTANCE.PostMessage(____TCheckBox_alone, (int) BM_CLICK, 0, 0);
+                }
 			}
 
 			if (info.reserved.contains("예약")) {
@@ -674,14 +683,10 @@ public class CargoMain extends JFrame {
 	public void sendChar(HWND hwnd, String str) throws InterruptedException {
 	    
 		User32.INSTANCE.PostMessage(hwnd, WM_SETFOCUS, 0, 0);
-		User32.INSTANCE.PostMessage(hwnd, WM_SETTEXT, 0, "");
 		for (int i = 0; i < str.length(); i++) {
 			User32.INSTANCE.PostMessage(hwnd, WM_CHAR, str.charAt(i), 0);
-			Thread.sleep(10);
+//			Thread.sleep(10);
 		}
-		
-		System.out.println(hwnd + "####endddddddddddddddddddddd");
-		//User32.INSTANCE.PostMessage(hwnd, WM_CHAR, "\n", 0);
 		User32.INSTANCE.PostMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
 		User32.INSTANCE.PostMessage(hwnd, WM_KILLFOCUS, 0, 0);
 	}
