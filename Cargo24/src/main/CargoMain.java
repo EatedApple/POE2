@@ -525,19 +525,7 @@ public class CargoMain extends JFrame {
 
 	public void setRegistOption(InfoModel info) {
 		try {
-			System.out.println("#######setRegistOption start");
-			// int leftFrameParent = User32.INSTANCE.GetWindowLongPtr(____TRzComboBox_ton, -12);
-			// int send_cbn_selchange = MakeWParam(leftFrameParent, CBN_SELCHANGE);
-
-			// Thread.sleep(100);
-
-			// // 도착 설정
-			// User32.INSTANCE.PostMessage(____TComboBox_arrival, CB_SETCURSEL, info.arrival_idx, 0);
-			// Thread.sleep(100);
-			// User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
-			// Thread.sleep(100);
-			sendChar(____TwCombo_payment_method, info.payment_method);
-			Thread.sleep(200);
+			User32.INSTANCE.SendMessage(____TwCombo_payment_method, WM_SETTEXT, 0, info.payment_method);
 			// 운송료
 			sendChar(____TwNumEdit_shipping_fee, info.price + "");
 			Thread.sleep(200);
@@ -570,7 +558,8 @@ public class CargoMain extends JFrame {
 			}
 			setTonCar(info);
 			// 화물적재량
-			sendChar(____TEdit_load_capacity, info.ton_info);
+			//sendChar(____TEdit_load_capacity, info.ton_info);
+			User32.INSTANCE.SendMessage(____TEdit_load_capacity, WM_SETTEXT, 0, info.ton_info);
 			Thread.sleep(200);
 			
 			System.out.println("#######setRegistOption end");
@@ -689,7 +678,7 @@ public class CargoMain extends JFrame {
 		System.out.println(hwnd + "####" + str);
 		User32.INSTANCE.PostMessage(hwnd, WM_SETFOCUS, 0, 0);
 		for (int i = 0; i < str.length(); i++) {
-			User32.INSTANCE.PostMessage(hwnd, WM_CHAR, str.charAt(i), 0);
+			User32.INSTANCE.SendMessage(hwnd, WM_CHAR, str.charAt(i), 0);
 		}
 		//User32.INSTANCE.PostMessage(hwnd, WM_CHAR, "\n", 0);
 		User32.INSTANCE.PostMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
