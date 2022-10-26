@@ -533,8 +533,8 @@ public class CargoMain extends JFrame {
 			sendChar(____TwNumEdit_commission, info.commission + "");
 			Thread.sleep(200);
 			// 화물 정보
-			sendChar(____TEdit5_more_infomation, info.freight_info);
-			Thread.sleep(200);
+			//sendChar(____TEdit5_more_infomation, info.freight_info);
+			User32.INSTANCE.SendMessage(____TEdit5_more_infomation, WM_SETTEXT, 0, info.freight_info);
 			// 지불 방식 운송비구분
 
 			if (info.mixed_loading.contains("혼적")) {
@@ -557,12 +557,9 @@ public class CargoMain extends JFrame {
 				}
 			}
 			setTonCar(info);
-			// 화물적재량
-			//sendChar(____TEdit_load_capacity, info.ton_info);
-			User32.INSTANCE.SendMessage(____TEdit_load_capacity, WM_SETTEXT, 0, info.ton_info);
-			Thread.sleep(200);
 			
-			System.out.println("#######setRegistOption end");
+			// 화물적재량
+			User32.INSTANCE.SendMessage(____TEdit_load_capacity, WM_SETTEXT, 0, info.ton_info);
 			registBtnClick();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
