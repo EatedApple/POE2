@@ -525,7 +525,9 @@ public class CargoMain extends JFrame {
 
 	public void setRegistOption(InfoModel info) {
 		try {
-			User32.INSTANCE.SendMessage(____TwCombo_payment_method, WM_SETTEXT, 0, info.payment_method);
+	           // 지불 방식 운송비구분
+            sendChar(____TwCombo_payment_method, "선/착불");
+            Thread.sleep(200);
 			// 운송료
 			sendChar(____TwNumEdit_shipping_fee, info.price + "");
 			Thread.sleep(200);
@@ -533,10 +535,9 @@ public class CargoMain extends JFrame {
 			sendChar(____TwNumEdit_commission, info.commission + "");
 			Thread.sleep(200);
 			// 화물 정보
-			//sendChar(____TEdit5_more_infomation, info.freight_info);
-			User32.INSTANCE.SendMessage(____TEdit5_more_infomation, WM_SETTEXT, 0, info.freight_info);
-			// 지불 방식 운송비구분
-
+			sendChar(____TEdit5_more_infomation, info.freight_info);
+			Thread.sleep(200);
+			
 			if (info.mixed_loading.contains("혼적")) {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_mixup, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
 					User32.INSTANCE.PostMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
@@ -671,12 +672,15 @@ public class CargoMain extends JFrame {
 	}
 
 	public void sendChar(HWND hwnd, String str) throws InterruptedException {
-
-		System.out.println(hwnd + "####" + str);
+	    
 		User32.INSTANCE.PostMessage(hwnd, WM_SETFOCUS, 0, 0);
+		User32.INSTANCE.PostMessage(hwnd, WM_SETTEXT, 0, "");
 		for (int i = 0; i < str.length(); i++) {
-			User32.INSTANCE.SendMessage(hwnd, WM_CHAR, str.charAt(i), 0);
+			User32.INSTANCE.PostMessage(hwnd, WM_CHAR, str.charAt(i), 0);
+			Thread.sleep(10);
 		}
+		
+		System.out.println(hwnd + "####endddddddddddddddddddddd");
 		//User32.INSTANCE.PostMessage(hwnd, WM_CHAR, "\n", 0);
 		User32.INSTANCE.PostMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
 		User32.INSTANCE.PostMessage(hwnd, WM_KILLFOCUS, 0, 0);
