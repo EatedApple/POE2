@@ -18,7 +18,6 @@
 	<classpathentry kind="lib" path="C:/Users/user/Documents/cargo24/jar/jboss-logging-3.1.4.GA.jar"/>
 	<classpathentry kind="lib" path="C:/Users/user/Documents/cargo24/jar/jboss-vfs-3.2.14.Final.jar"/>
 	<classpathentry kind="lib" path="C:/Users/user/Documents/cargo24/jar/jcl-over-slf4j-1.7.25.jar"/>
-	<classpathentry kind="lib" path="C:/Users/user/Documents/cargo24/jar/jna-5.1.0.jar"/>
 	<classpathentry kind="lib" path="C:/Users/user/Documents/cargo24/jar/jna-5.12.1.jar"/>
 	<classpathentry kind="lib" path="C:/Users/user/Documents/cargo24/jar/jna-jpms-5.12.1.jar"/>
 	<classpathentry kind="lib" path="C:/Users/user/Documents/cargo24/jar/jna-platform-5.12.1.jar"/>

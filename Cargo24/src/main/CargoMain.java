@@ -512,16 +512,12 @@ public class CargoMain extends JFrame {
 			int send_cbn_selchange = MakeWParam(leftFrameParent, CBN_SELCHANGE);
 
 			// 톤수 설정
-			User32.INSTANCE.PostMessage(____TRzComboBox_ton, CB_SETCURSEL, info.ton_idx, 0);
-			Thread.sleep(100);
-			User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_ton);
-
-			Thread.sleep(100);
+			User32.INSTANCE.SendMessage(____TRzComboBox_ton, CB_SETCURSEL, info.ton_idx, 0);
+			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_ton);
 
 			// 차종 설정
-			User32.INSTANCE.PostMessage(____TRzComboBox_carsort, CB_SETCURSEL, info.car_sort_idx, 0);
-			Thread.sleep(100);
-			User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
+			User32.INSTANCE.SendMessage(____TRzComboBox_carsort, CB_SETCURSEL, info.car_sort_idx, 0);
+			User32.INSTANCE.SendMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -540,22 +536,19 @@ public class CargoMain extends JFrame {
 			// Thread.sleep(100);
 			// User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
 			// Thread.sleep(100);
-			
+			sendChar(____TwCombo_payment_method, info.payment_method);
+			Thread.sleep(200);
 			// 운송료
 			sendChar(____TwNumEdit_shipping_fee, info.price + "");
-			Thread.sleep(100);
+			Thread.sleep(200);
 			// 수수료
 			sendChar(____TwNumEdit_commission, info.commission + "");
-			Thread.sleep(100);
+			Thread.sleep(200);
 			// 화물 정보
 			sendChar(____TEdit5_more_infomation, info.freight_info);
-			Thread.sleep(100);
-			// 화물적재량
-			sendChar(____TEdit_load_capacity, info.ton_info);
-			Thread.sleep(100);
+			Thread.sleep(200);
 			// 지불 방식 운송비구분
-			sendChar(____TwCombo_payment_method, info.payment_method);
-			Thread.sleep(100);
+
 			if (info.mixed_loading.contains("혼적")) {
 				if (User32.INSTANCE.SendMessage(____TCheckBox_mixup, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
 					User32.INSTANCE.PostMessage(____TCheckBox_mixup, (int) BM_CLICK, 0, 0);
@@ -576,6 +569,10 @@ public class CargoMain extends JFrame {
 				}
 			}
 			setTonCar(info);
+			// 화물적재량
+			sendChar(____TEdit_load_capacity, info.ton_info);
+			Thread.sleep(200);
+			
 			System.out.println("#######setRegistOption end");
 			registBtnClick();
 		} catch (InterruptedException e) {
@@ -694,8 +691,8 @@ public class CargoMain extends JFrame {
 		for (int i = 0; i < str.length(); i++) {
 			User32.INSTANCE.PostMessage(hwnd, WM_CHAR, str.charAt(i), 0);
 		}
-		User32.INSTANCE.PostMessage(hwnd, WM_CHAR, "\n", 0);
-		//User32.INSTANCE.PostMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
+		//User32.INSTANCE.PostMessage(hwnd, WM_CHAR, "\n", 0);
+		User32.INSTANCE.PostMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
 		User32.INSTANCE.PostMessage(hwnd, WM_KILLFOCUS, 0, 0);
 	}
 
