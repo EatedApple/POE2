@@ -1,9 +1,13 @@
 package main;
 
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -12,8 +16,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.FileSystems;
@@ -21,16 +23,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Graphics2D;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -41,8 +38,9 @@ import javax.swing.JTextArea;
 import org.json.simple.JSONObject;
 
 import com.sun.jna.Memory;
-import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.Native;
 import com.sun.jna.platform.win32.GDI32;
+import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinDef.HBITMAP;
 import com.sun.jna.platform.win32.WinDef.HDC;
 import com.sun.jna.platform.win32.WinDef.HWND;
@@ -50,15 +48,17 @@ import com.sun.jna.platform.win32.WinDef.RECT;
 import com.sun.jna.platform.win32.WinGDI;
 import com.sun.jna.platform.win32.WinGDI.BITMAPINFO;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
-import com.sun.jna.Native;
-import com.sun.jna.platform.win32.WinDef.DWORD;
+import com.sun.jna.win32.StdCallLibrary;
 import com.sun.jna.win32.W32APIOptions;
+
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
-import net.sourceforge.tess4j.TesseractException;
-import com.sun.jna.win32.StdCallLibrary;
 
 public class CargoMain extends JFrame {
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
 	public static final int EM_REPLACESEL = 0x00c2;
 	public static final int EM_SETMODIFY = 0x00b9;
 	public static final int WM_SETTEXT = 0x000c;
@@ -128,11 +128,8 @@ public class CargoMain extends JFrame {
 	String loadAddr;
 	String alightAddr;
 	static String title = "CapturePrice";
-	static TCPServer tcp;
 
-	static private final Map<Integer, Integer> mappingFileds = new HashMap<Integer, Integer>();
-
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		new CargoMain();
 	}
 
@@ -146,7 +143,7 @@ public class CargoMain extends JFrame {
 
 	public interface User32Extra extends User32 {
 
-		User32Extra INSTANCE = (User32Extra) Native.loadLibrary("user32", User32Extra.class,
+		User32Extra INSTANCE = (User32Extra) Native.load("user32", User32Extra.class,
 				W32APIOptions.DEFAULT_OPTIONS);
 
 		public HDC GetWindowDC(HWND hWnd);
@@ -157,7 +154,7 @@ public class CargoMain extends JFrame {
 
 	public interface GDI32Extra extends GDI32 {
 
-		GDI32Extra INSTANCE = (GDI32Extra) Native.loadLibrary("gdi32", GDI32Extra.class, W32APIOptions.DEFAULT_OPTIONS);
+		GDI32Extra INSTANCE = (GDI32Extra) Native.load("gdi32", GDI32Extra.class, W32APIOptions.DEFAULT_OPTIONS);
 
 		public boolean BitBlt(HDC hObject, int nXDest, int nYDest, int nWidth, int nHeight, HDC hObjectSource,
 				int nXSrc, int nYSrc, DWORD dwRop);
@@ -169,7 +166,7 @@ public class CargoMain extends JFrame {
 	}
 
 	public interface User32 extends StdCallLibrary {
-		User32 INSTANCE = (User32) Native.loadLibrary("user32", User32.class, W32APIOptions.DEFAULT_OPTIONS);
+		User32 INSTANCE = (User32) Native.load("user32", User32.class, W32APIOptions.DEFAULT_OPTIONS);
 
 		boolean ShowWindow(HWND hWnd, int nCmdShow);
 
@@ -299,7 +296,6 @@ public class CargoMain extends JFrame {
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -308,7 +304,7 @@ public class CargoMain extends JFrame {
 	static Socket socket;
 	int port = 8000;
 
-	public CargoMain() {
+	public CargoMain() throws IOException {
 		initTesseract();
 		
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -319,7 +315,6 @@ public class CargoMain extends JFrame {
 		});
 		
 		this.setTitle(title + "2209211406");
-		int frameH = 100;
 		Dimension ss = Toolkit.getDefaultToolkit().getScreenSize();
 		Dimension frameSize = new Dimension(500, 400);
 
@@ -336,130 +331,136 @@ public class CargoMain extends JFrame {
 		setVisible(true);
 
 		textArea.append("서버 시작..\n");
-		ServerSocket serverSocket = null;
-		try {
-			serverSocket = new ServerSocket(port);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		while (true) {
-			try {
-				loadAddr = null;
-				alightAddr = null;
-				textArea.append("접속 대기..\n");
-				socket = serverSocket.accept();
-				socket.setSoTimeout(10000);
+		try (ServerSocket serverSocket = new ServerSocket(port)) {
+			while (true) {
+				try {
+					loadAddr = null;
+					alightAddr = null;
+					textArea.append("접속 대기..\n");
+					socket = serverSocket.accept();
+					socket.setSoTimeout(10000);
 
-				String cip = socket.getInetAddress().toString();
-				textArea.append("[ " + cip + " ] 접속\n");
-				if (!cip.contains("112.175.243.19") && !cip.contains("192.168.0.1")) {
-					textArea.append("[ " + cip + " ] 허용ip 아님\n");
-					socket.close();
+					String cip = socket.getInetAddress().toString();
+					textArea.append("[ " + cip + " ] 접속\n");
+					if (!cip.contains("112.175.243.19") && !cip.contains("192.168.0.1")) {
+						textArea.append("[ " + cip + " ] 허용ip 아님\n");
+						socket.close();
+						continue;
+					}
+					
+					getHwnd();
+
+					int BUF_SIZE = 1024 * 7;
+					BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf8"), BUF_SIZE);
+
+					BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
+					//BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+					String params = br.readLine();
+					textArea.append(params + "\n");
+
+					InfoModel info = new InfoModel(params);
+					closeMessageForm();
+					setAddr(info);
+					loadAddr = getLoadAddrText();
+					alightAddr = getAlightAddrText();
+
+					HashMap<String, Object> myHashMap1 = new HashMap<String, Object>();
+					myHashMap1.put("req_load_addr", info.load_addr);
+					myHashMap1.put("req_alight_addr", info.alight_addr);
+					myHashMap1.put("res_load_addr", loadAddr);
+					myHashMap1.put("res_alight_addr", alightAddr);
+					myHashMap1.put("capture_image", "");
+					myHashMap1.put("proc", 1);
+
+					if (info.type.contains("regist")) {
+						setRegistOption(info);
+						//registBtnClick();
+						String confirmMsg = confirmMessageForm();
+						String msg = "";
+
+						if (confirmMsg == null) {
+							msg += "등록실패";
+							myHashMap1.put("proc", 0);
+						} else {
+							if (!confirmMsg.contains("접수")) {
+								myHashMap1.put("proc", 0);
+							}
+							msg += confirmMsg;
+						}
+						
+						String memo = getMemo();
+
+						String log = "등록\n[params]" + params + "\n" + "[msg]" + msg + "\n" + "[memo]" + memo + "\n"
+								+ "[res]" + myHashMap1.toString();
+
+						writeLog(info.zin_36, log);
+
+						myHashMap1.put("msg", msg.replace("\n", ""));
+						textArea.append("[ " + cip + " ] " + myHashMap1.toString() + "\n");
+					} else {
+						if (loadAddr.replace(" ", "").length() == 0 || alightAddr.replace(" ", "").length() == 0) {
+							throw new Exception("상하차지 정보가 잘못 들어감");
+						}
+						setTonCar(info);
+
+						final BufferedImage priceImg = getDistancePrice();
+						String ocr = OCR(priceImg);
+						System.out.println(ocr);
+						String arr = Arrays.toString(ocr.split(":"));
+
+						if (arr.length() < 3) {
+							throw new Exception("요금정보 불러오기 실패");
+						}
+						
+						String distance = ocr.split(":")[1].trim().replace("\n", "").replaceAll("[^\\d.]", "").replace("?", "7");
+						String price = ocr.split(":")[2].replaceAll("[^\\d.]", "").replace("?", "7");
+						
+						//String imageBase64 = imgToBase64String(priceImg, "png");
+						myHashMap1.put("distance", distance);
+						myHashMap1.put("ocr", ocr.replace("\n", "").trim());
+						myHashMap1.put("price", price);
+
+						String log = "가격조회\n[params]" + params + "\n" + "[res]" + myHashMap1.toString();
+
+						String filename = info.load_addr + " 에서 " + info.alight_addr;
+						writeLog(filename, log);
+
+						textArea.append("[ " + cip + " ] " + price + "\n");
+					}
+					JSONObject res = new JSONObject(myHashMap1);
+					out.write(res.toJSONString().getBytes("UTF-8"));
+					out.flush();
+					//bw.write(res.toJSONString());
+					//bw.flush();
+					
+					setResizable(false);
+					setVisible(true);
+
+				} catch (Exception ex) {
+					writeLog("error", ex.getMessage());
+					textArea.append("\n Server exception: " + ex.getMessage());
+					
+					HashMap<String, Object> myHashMap1 = new HashMap<String, Object>();
+					myHashMap1.put("msg", ex.getMessage());
+					myHashMap1.put("proc", 0);
+					JSONObject res = new JSONObject(myHashMap1);
+					try {
+						BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
+						out.write(res.toJSONString().getBytes("UTF-8"));
+						out.flush();
+						//BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+						//bw.write(res.toJSONString());
+						//bw.flush();
+						if (socket != null && socket.isConnected()) {
+							socket.close();
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
 					continue;
 				}
-				
-				getHwnd();
-
-				int BUF_SIZE = 1024 * 7;
-				BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf8"), BUF_SIZE);
-				BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
-				String params = br.readLine();
-				textArea.append(params + "\n");
-
-				InfoModel info = new InfoModel(params);
-				closeMessageForm();
-				setAddr(info);
-				loadAddr = getLoadAddrText();
-				alightAddr = getAlightAddrText();
-				setTonCar(info);
-
-				JSONObject res = new JSONObject();
-				res.put("req_load_addr", info.load_addr);
-				res.put("req_alight_addr", info.alight_addr);
-				res.put("res_load_addr", loadAddr);
-				res.put("res_alight_addr", alightAddr);
-				res.put("capture_image", "");
-				res.put("proc", 1);
-
-				if (info.type.contains("regist")) {
-					setRegistOption(info);
-					//registBtnClick();
-					String confirmMsg = confirmMessageForm();
-					String msg = "";
-
-					if (confirmMsg == null) {
-						msg += "등록실패";
-						res.put("proc", 0);
-					} else {
-						if (!confirmMsg.contains("접수")) {
-							res.put("proc", 0);
-						}
-						msg += confirmMsg;
-					}
-					
-					String memo = getMemo();
-
-					String log = "등록\n[params]" + params + "\n" + "[msg]" + msg + "\n" + "[memo]" + memo + "\n"
-							+ "[res]" + res.toJSONString();
-
-					writeLog(info.zin_36, log);
-
-					res.put("msg", msg.replace("\n", ""));
-					textArea.append("[ " + cip + " ] " + res.toJSONString() + "\n");
-				} else {
-					if (loadAddr.replace(" ", "").length() == 0 || alightAddr.replace(" ", "").length() == 0) {
-						throw new Exception("상하차지 정보가 잘못 들어감");
-					}
-
-					final BufferedImage priceImg = getDistancePrice();
-					String ocr = OCR(priceImg);
-					System.out.println(ocr);
-					String arr = Arrays.toString(ocr.split(":"));
-
-					if (arr.length() < 3) {
-						throw new Exception("요금정보 불러오기 실패");
-					}
-					
-					String distance = ocr.split(":")[1].trim().replace("\n", "").replaceAll("[^\\d.]", "").replace("?", "7");
-					String price = ocr.split(":")[2].replaceAll("[^\\d.]", "").replace("?", "7");
-					
-					//String imageBase64 = imgToBase64String(priceImg, "png");
-					res.put("distance", distance);
-					res.put("ocr", ocr.replace("\n", "").trim());
-					res.put("price", price);
-
-					String log = "가격조회\n[params]" + params + "\n" + "[res]" + res.toJSONString();
-
-					String filename = info.load_addr + " 에서 " + info.alight_addr;
-					writeLog(filename, log);
-
-					textArea.append("[ " + cip + " ] " + price + "\n");
-				}
-				bw.write(res.toJSONString());
-				bw.flush();
-				setResizable(false);
-				setVisible(true);
-
-			} catch (Exception ex) {
-				writeLog("error", ex.getMessage());
-				textArea.append("\n Server exception: " + ex.getMessage());
-				JSONObject res = new JSONObject();
-				res.put("msg", ex.getMessage());
-				res.put("proc", 0);
-				try {
-					BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-					bw.write(res.toJSONString());
-					bw.flush();
-					if (socket != null && socket.isConnected()) {
-						socket.close();
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-				continue;
 			}
 		}
 	
@@ -498,7 +499,6 @@ public class CargoMain extends JFrame {
 			Thread.sleep(100);
 			closeSearchAddrWindow();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -523,7 +523,6 @@ public class CargoMain extends JFrame {
 			Thread.sleep(100);
 			User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TRzComboBox_carsort);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -531,16 +530,16 @@ public class CargoMain extends JFrame {
 	public void setRegistOption(InfoModel info) {
 		try {
 			System.out.println("#######setRegistOption start");
-			int leftFrameParent = User32.INSTANCE.GetWindowLongPtr(____TRzComboBox_ton, -12);
-			int send_cbn_selchange = MakeWParam(leftFrameParent, CBN_SELCHANGE);
+			// int leftFrameParent = User32.INSTANCE.GetWindowLongPtr(____TRzComboBox_ton, -12);
+			// int send_cbn_selchange = MakeWParam(leftFrameParent, CBN_SELCHANGE);
 
-			Thread.sleep(100);
+			// Thread.sleep(100);
 
-			// 도착 설정
-			User32.INSTANCE.PostMessage(____TComboBox_arrival, CB_SETCURSEL, info.arrival_idx, 0);
-			Thread.sleep(100);
-			User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
-			Thread.sleep(100);
+			// // 도착 설정
+			// User32.INSTANCE.PostMessage(____TComboBox_arrival, CB_SETCURSEL, info.arrival_idx, 0);
+			// Thread.sleep(100);
+			// User32.INSTANCE.PostMessage(leftFrameParent, WM_COMMAND, send_cbn_selchange, ____TComboBox_arrival);
+			// Thread.sleep(100);
 			
 			// 운송료
 			sendChar(____TwNumEdit_shipping_fee, info.price + "");
@@ -576,11 +575,10 @@ public class CargoMain extends JFrame {
 					User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
 				}
 			}
-			
+			setTonCar(info);
 			System.out.println("#######setRegistOption end");
 			registBtnClick();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -613,6 +611,11 @@ public class CargoMain extends JFrame {
 			
 			BufferedImage image = capture(TMessageForm, 1);
 			caption += OCR(image);
+
+			if (caption.contains("내려")) {
+				File outputfile = new File("C:\\Users\\user\\Documents\\cargo24\\Cargo24\\error.jpg");
+				ImageIO.write(image, "jpg", outputfile);
+			}
 			
 			//User32.INSTANCE.PostMessage(TMessageForm, (int) WM_CLOSE, 0, 0);
 			User32.INSTANCE.PostMessage(TButton, (int) BM_CLICK, 0, 0);
@@ -691,7 +694,8 @@ public class CargoMain extends JFrame {
 		for (int i = 0; i < str.length(); i++) {
 			User32.INSTANCE.PostMessage(hwnd, WM_CHAR, str.charAt(i), 0);
 		}
-		User32.INSTANCE.PostMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
+		User32.INSTANCE.PostMessage(hwnd, WM_CHAR, "\n", 0);
+		//User32.INSTANCE.PostMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
 		User32.INSTANCE.PostMessage(hwnd, WM_KILLFOCUS, 0, 0);
 	}
 
@@ -786,7 +790,6 @@ public class CargoMain extends JFrame {
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if (__TXiPanel_distanceAndPrice == null) {
@@ -818,7 +821,11 @@ public class CargoMain extends JFrame {
 			GDI32.INSTANCE.SelectObject(hdcMemDC, hOld);
 			GDI32.INSTANCE.DeleteDC(hdcMemDC);
 
-			BITMAPINFO bmi = new BITMAPINFO();
+			/**
+			 * 예외가 발생했습니다. java.lang.NoSuchMethodException 
+			 * "java.lang.NoSuchMethodException: com.sun.jna.platform.win32.WinGDI$BITMAPINFOHEADER.<init>(com.sun.jna.Pointer)"
+			 */
+			BITMAPINFO bmi = new BITMAPINFO(); 
 			bmi.bmiHeader.biWidth = width;
 			bmi.bmiHeader.biHeight = -height;
 			bmi.bmiHeader.biPlanes = 1;
