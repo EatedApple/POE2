@@ -309,6 +309,8 @@ public class CargoMain extends JFrame {
 	int port = 8000;
 
 	public CargoMain() {
+		initTesseract();
+		
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -761,16 +763,18 @@ public class CargoMain extends JFrame {
 					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
 					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
 	}
+	
+	ITesseract tesseract = new Tesseract();
+	public void initTesseract() {
+		Path root = FileSystems.getDefault().getPath("").toAbsolutePath();
+		Path filePath = Paths.get(root.toString(), "tessdata");
+		tesseract.setDatapath(filePath.toString());
+		tesseract.setLanguage("kor+eng");
+	}
 
 	public String OCR(BufferedImage image) {
 		try {
 			if (image == null) { return null; }
-			
-			ITesseract tesseract = new Tesseract();
-			Path root = FileSystems.getDefault().getPath("").toAbsolutePath();
-			Path filePath = Paths.get(root.toString(), "tessdata");
-			tesseract.setDatapath(filePath.toString());
-			tesseract.setLanguage("kor+eng");
 			String result = tesseract.doOCR(image);
 			return result;
 		} catch (Exception e) {
