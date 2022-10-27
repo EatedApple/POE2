@@ -34,6 +34,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.RepaintManager;
 
 import org.json.simple.JSONObject;
 
@@ -304,8 +305,15 @@ public class CargoMain extends JFrame {
 	}
 
 	static ExecutorService executorService = Executors.newFixedThreadPool(1);
-	static Socket socket;
 	int port = 8000;
+
+	public void clearHeap() {
+		RepaintManager rm = RepaintManager.currentManager(this);
+		Dimension dim = rm.getDoubleBufferMaximumSize();
+		rm.setDoubleBufferMaximumSize(new Dimension(0,0)); 
+		rm.setDoubleBufferMaximumSize(dim);
+		java.lang.System.gc();
+	}
 
 	public CargoMain() throws IOException {
 		initTesseract();
@@ -336,13 +344,13 @@ public class CargoMain extends JFrame {
 		textArea.append("서버 시작..\n");
 		try (ServerSocket serverSocket = new ServerSocket(port)) {
 			while (true) {
+				clearHeap();
+				loadAddr = null;
+				alightAddr = null;
+				textArea.append("접속 대기..\n");
+				Socket socket = serverSocket.accept();
+				socket.setSoTimeout(10000);
 				try {
-					loadAddr = null;
-					alightAddr = null;
-					textArea.append("접속 대기..\n");
-					socket = serverSocket.accept();
-					socket.setSoTimeout(10000);
-
 					String cip = socket.getInetAddress().toString();
 					textArea.append("[ " + cip + " ] 접속\n");
 					if (!cip.contains("112.175.243.19") && !cip.contains("192.168.0.1")) {
@@ -355,9 +363,7 @@ public class CargoMain extends JFrame {
 
 					int BUF_SIZE = 1024 * 7;
 					BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf8"), BUF_SIZE);
-
 					BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
-					//BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
 					String params = br.readLine();
 					textArea.append(params + "\n");
@@ -452,9 +458,6 @@ public class CargoMain extends JFrame {
 						BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
 						out.write(res.toJSONString().getBytes("UTF-8"));
 						out.flush();
-						//BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-						//bw.write(res.toJSONString());
-						//bw.flush();
 						if (socket != null && socket.isConnected()) {
 							socket.close();
 						}
@@ -540,7 +543,8 @@ public class CargoMain extends JFrame {
 			sendChar(____TwNumEdit_commission, info.commission + "");
 			Thread.sleep(200);
 			// 화물 정보
-			sendChar(____TEdit5_more_infomation, info.freight_info);
+
+			sendSetText(____TEdit5_more_infomation, info.freight_info);
 			Thread.sleep(200);
 			
 			if (info.mixed_loading.contains("혼적")) {
@@ -680,12 +684,18 @@ public class CargoMain extends JFrame {
 		User32.INSTANCE.PostMessage(hwnd, WM_LBUTTONUP, MK_LBUTTON, 1);
 	}
 
+	public void sendSetText(HWND hwnd, String str) {
+		User32.INSTANCE.PostMessage(hwnd, WM_SETFOCUS, 0, 0);
+		User32.INSTANCE.SendMessage(____TEdit5_more_infomation, WM_SETTEXT, 0, str);
+		User32.INSTANCE.PostMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
+		User32.INSTANCE.PostMessage(hwnd, WM_KILLFOCUS, 0, 0);
+	}
+
 	public void sendChar(HWND hwnd, String str) throws InterruptedException {
-	    
 		User32.INSTANCE.PostMessage(hwnd, WM_SETFOCUS, 0, 0);
 		for (int i = 0; i < str.length(); i++) {
 			User32.INSTANCE.PostMessage(hwnd, WM_CHAR, str.charAt(i), 0);
-//			Thread.sleep(10);
+			//Thread.sleep(1);
 		}
 		User32.INSTANCE.PostMessage(hwnd, WM_KEYDOWN, VK_RETURN, 0);
 		User32.INSTANCE.PostMessage(hwnd, WM_KILLFOCUS, 0, 0);
