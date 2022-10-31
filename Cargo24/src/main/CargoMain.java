@@ -369,6 +369,10 @@ public class CargoMain extends JFrame {
 					textArea.append(params + "\n");
 
 					InfoModel info = new InfoModel(params);
+					if (info.load_addr.replace(" ", "").length() == 0 || info.alight_addr.replace(" ", "").length() == 0) {
+						throw new Exception("상하차지 정보가 잘못 들어감");
+					}
+
 					closeMessageForm();
 					setAddr(info);
 					loadAddr = getLoadAddrText();
