@@ -128,11 +128,11 @@ public class InfoModel {
 			}
 			
 			if (jsonObj.get("freight_info") != null) {
-				this.freight_info = (String) jsonObj.get("freight_info");
+				this.freight_info = removeSpecial((String) jsonObj.get("freight_info"));
 			}
 			
 			if (jsonObj.get("mixed_loading") != null) {
-				this.mixed_loading = (String) jsonObj.get("mixed_loading");
+				this.mixed_loading = removeSpecial((String) jsonObj.get("mixed_loading"));
 			}
 			
 			if (jsonObj.get("zin_36") != null) {
@@ -140,12 +140,18 @@ public class InfoModel {
 			}
 
 			if (jsonObj.get("reserved") != null) {
-				this.reserved = (String) jsonObj.get("reserved");
+				this.reserved = removeSpecial((String) jsonObj.get("reserved"));
 			}
 		} catch (ParseException e) {
 			e.printStackTrace();
 			return;
 		}
 	
+	}
+
+	public String removeSpecial(String str) {
+		String match = "[^\uAC00-\uD7A30-9a-zA-Z()/.,:*&^%$#@![]{}~\\s]";
+        str = str.replaceAll(match, "");
+		return str;
 	}
 }
