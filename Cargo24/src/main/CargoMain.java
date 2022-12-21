@@ -242,6 +242,7 @@ public class CargoMain extends JFrame {
 		HWND _TAdvPanel1 = User32.INSTANCE.FindWindowEx(TAdvPanel, null, "TAdvPanel", null);
 		// 구버전
 		__OldTAdvGlowButton = User32.INSTANCE.FindWindowEx(_TAdvPanel1, null, "TAdvGlowButton", null);
+		btnClick(__OldTAdvGlowButton);
 		// 신버전
 		__NewTAdvGlowButton = User32.INSTANCE.FindWindowEx(_TAdvPanel1, __OldTAdvGlowButton, "TAdvGlowButton", null);
 		
@@ -415,7 +416,9 @@ public class CargoMain extends JFrame {
 					InfoModel info = new InfoModel(params);
 					
 					if (info.type.contains("count")) {
-					    String ocr = getInfoCount();
+					    String ocr = getInfoCount().replaceAll("[^\\d]", " ").replace("?", "7").trim();
+					    System.out.println(ocr);
+					    
 					    HashMap<String, Object> myHashMap1 = new HashMap<String, Object>();
 					    myHashMap1.put("proc", 1);
 					    myHashMap1.put("res", ocr);
