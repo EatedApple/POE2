@@ -146,12 +146,14 @@ public class InfoModel {
 			e.printStackTrace();
 			return;
 		}
-	
 	}
 
 	public String removeSpecial(String str) {
-		String match = "[^\uAC00-\uD7A30-9a-zA-Z()/.,:*&^%$#@![]{}~\\s]";
+		String match = "[^\uAC00-\uD7A30-9a-zA-Z()/.,:*&%$#@!()\\[\\]\\{\\}\\s]";
         str = str.replaceAll(match, "");
+        str = str.replaceAll(System.getProperty("line.separator"), " ");
+        str = str.replaceAll("(\r\n|\r|\n|\n\r)", " ");
+        
 		return str;
 	}
 }
