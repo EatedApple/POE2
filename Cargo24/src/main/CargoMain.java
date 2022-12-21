@@ -93,7 +93,12 @@ public class CargoMain extends JFrame {
 	static HWND TfrmCargoOrderOld;
 	static HWND __TXiPanel_distanceAndPrice;
 	static HWND ___TJvXPButton_closeBtn;
-
+    static HWND __OldTAdvGlowButton; // 구버전 탭
+    
+    static HWND __NewTAdvGlowButton; // 신버전 탭
+    static HWND ____TRzPanel_cancel_count;
+    static HWND TfrmCargoOrder;
+    
 	static HWND ____TEdit10; // 상차지 시도
 	static HWND ____TEdit4; // 상차지 시군
 	static HWND ____TEdit2; // 상차지 동읍리
@@ -130,6 +135,7 @@ public class CargoMain extends JFrame {
 
 	String loadAddr;
 	String alightAddr;
+    private HWND ___TRzGridPanel1;
 	static String title = "CapturePrice";
 
 	public static void main(String[] args) throws IOException {
@@ -231,8 +237,28 @@ public class CargoMain extends JFrame {
 		}
 		User32.INSTANCE.ShowWindow(TfrmCargoMain, 1);
 
+		//신버전 구버전 탭버튼 스위칭
+		HWND TAdvPanel = User32.INSTANCE.FindWindowEx(TfrmCargoMain, null, "TAdvPanel", null);
+		HWND _TAdvPanel1 = User32.INSTANCE.FindWindowEx(TAdvPanel, null, "TAdvPanel", null);
+		// 구버전
+		__OldTAdvGlowButton = User32.INSTANCE.FindWindowEx(_TAdvPanel1, null, "TAdvGlowButton", null);
+		// 신버전
+		__NewTAdvGlowButton = User32.INSTANCE.FindWindowEx(_TAdvPanel1, __OldTAdvGlowButton, "TAdvGlowButton", null);
+		
 		HWND MDIClient = User32.INSTANCE.FindWindowEx(TfrmCargoMain, null, "MDIClient", null);
-
+		
+		TfrmCargoOrder = User32.INSTANCE.FindWindowEx(MDIClient, null, "TfrmCargoOrder", null);
+		HWND _TRzPanel1 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, null, "TRzPanel", null);
+		HWND _TRzPanel2 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel1, "TRzPanel", null);
+		HWND _TRzPanel3 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel2, "TRzPanel", null);
+		HWND _TRzPanel4 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel3, "TRzPanel", null);
+		
+		HWND __TRzPanel1 = User32.INSTANCE.FindWindowEx(_TRzPanel4, null, "TRzPanel", null);
+		___TRzGridPanel1 = User32.INSTANCE.FindWindowEx(__TRzPanel1, null, "TRzGridPanel", null);
+		HWND ____TRzPanel1 = User32.INSTANCE.FindWindowEx(___TRzGridPanel1, null, "TRzPanel", null);
+		// 취소 count
+		____TRzPanel_cancel_count = User32.INSTANCE.FindWindowEx(___TRzGridPanel1, ____TRzPanel1, "TRzPanel", null);		
+		
 		TfrmCargoOrderOld = User32.INSTANCE.FindWindowEx(MDIClient, null, "TfrmCargoOrderOld", null);
 		HWND _TPanel1 = User32.INSTANCE.FindWindowEx(TfrmCargoOrderOld, null, "TPanel", null);
 		HWND _TPanel2 = User32.INSTANCE.FindWindowEx(TfrmCargoOrderOld, _TPanel1, "TPanel", null);
@@ -303,6 +329,24 @@ public class CargoMain extends JFrame {
 			e.printStackTrace();
 		}
 	}
+	
+	public String getInfoCount() {
+        btnClick(__NewTAdvGlowButton);
+        try {
+            Thread.sleep(2000);
+            final BufferedImage priceImg = capture(___TRzGridPanel1, 1);
+            String ocr = OCR(priceImg);
+            System.out.println(ocr);
+            btnClick(__OldTAdvGlowButton);
+            
+            return ocr;
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            
+            return null;
+        }
+	}
 
 	static ExecutorService executorService = Executors.newFixedThreadPool(1);
 	int port = 8000;
@@ -353,11 +397,11 @@ public class CargoMain extends JFrame {
 				try {
 					String cip = socket.getInetAddress().toString();
 					textArea.append("[ " + cip + " ] 접속\n");
-					if (!cip.contains("112.175.243.19") && !cip.contains("192.168.0.1")) {
-						textArea.append("[ " + cip + " ] 허용ip 아님\n");
-						socket.close();
-						continue;
-					}
+					 if (!cip.contains("112.175.243.19") && !cip.contains("127.0.0.1")) {
+					 	textArea.append("[ " + cip + " ] 허용ip 아님\n");
+					 	socket.close();
+					 	continue;
+					 }
 					
 					getHwnd();
 
@@ -369,6 +413,18 @@ public class CargoMain extends JFrame {
 					textArea.append(params + "\n");
 
 					InfoModel info = new InfoModel(params);
+					
+					if (info.type.contains("count")) {
+					    String ocr = getInfoCount();
+					    HashMap<String, Object> myHashMap1 = new HashMap<String, Object>();
+					    myHashMap1.put("proc", 1);
+					    myHashMap1.put("res", ocr);
+		                JSONObject res = new JSONObject(myHashMap1);
+		                out.write(res.toJSONString().getBytes("UTF-8"));
+		                out.flush();
+		                continue;
+					}
+					
 					if (info.load_addr.replace(" ", "").length() == 0 || info.alight_addr.replace(" ", "").length() == 0) {
 						throw new Exception("상하차지 정보가 잘못 들어감");
 					}
@@ -565,15 +621,15 @@ public class CargoMain extends JFrame {
                 }
 			}
 
-			if (info.reserved.contains("예약")) {
-				if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
-					User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
-				}
-			} else {
-				if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-					User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
-				}
-			}
+			// if (info.reserved.contains("예약")) {
+			// 	if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
+			// 		User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
+			// 	}
+			// } else {
+			// 	if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+			// 		User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
+			// 	}
+			// }
 			setTonCar(info);
 			
 			// 화물적재량
@@ -767,7 +823,7 @@ public class CargoMain extends JFrame {
 		//			HWND ___TJvXPButton = User32.INSTANCE.FindWindowEx(__TPanel, null, "__TJvXPButton", null);
 		//
 		//			User32.INSTANCE.PostMessage(_____TRealGrid, 0x0203, MK_LBUTTON, MakeWParam(50, 50));
-		//			User32.INSTANCE.PostMessage(_____TRealGrid, WM_LBUTTONUP, MK_LBUTTON, MakeWParam(50, 50));
+		//			User32.INSTANCE.PostMessage(_____TRealGrid, WM_LBUeTTONUP, MK_LBUTTON, MakeWParam(50, 50));
 		//			Thread.sleep(200);
 		
 					User32.INSTANCE.PostMessage(TfrmAddrSearchXP, WM_CLOSE, 0, 0);
