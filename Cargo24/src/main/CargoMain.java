@@ -408,8 +408,6 @@ public class CargoMain extends JFrame {
 
 	public CargoMain() throws IOException {
 		initTesseract();
-		getHwnd();
-		getInfoCount();
 		
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
