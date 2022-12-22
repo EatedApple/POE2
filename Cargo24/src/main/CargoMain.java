@@ -259,9 +259,14 @@ public class CargoMain extends JFrame {
 		//기간조회 2022-12-22 ~ 2022-12-22 시작일 종료일
 		__TwDateEdit_end = User32.INSTANCE.FindWindowEx(_TRzPanel2, null, "TwDateEdit", null);
 		__TwDateEdit_start = User32.INSTANCE.FindWindowEx(_TRzPanel2, __TwDateEdit_end, "TwDateEdit", null);
+		__TAdvGlowButton = User32.INSTANCE.FindWindowEx(_TRzPanel2, null, null, "조회(F2)");
 		
 		HWND _TRzPanel3 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel2, "TRzPanel", null);
-		__TAdvGlowButton = User32.INSTANCE.FindWindowEx(_TRzPanel3, null, null, "조회(F2)");
+	    if (__TAdvGlowButton == null) {
+	        __TAdvGlowButton = User32.INSTANCE.FindWindowEx(_TRzPanel3, null, null, "조회(F2)");
+	    }
+		
+		System.out.println(__TAdvGlowButton);
 		
 		HWND _TRzPanel4 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel3, "TRzPanel", null);
 		HWND _TRzPanel5 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel4, "TRzPanel", null);
@@ -368,6 +373,7 @@ public class CargoMain extends JFrame {
             Thread.sleep(100);
             
             btnClick(__TAdvGlowButton);
+            System.out.println(__TAdvGlowButton);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -385,6 +391,7 @@ public class CargoMain extends JFrame {
             Thread.sleep(2000);
             final BufferedImage priceImg = capture(___TRzGridPanel1, 1);
             String ocr = OCR(priceImg);
+            System.out.println(ocr);
             btnClick(__OldTAdvGlowButton);
             return ocr;
         } catch (InterruptedException e) {
@@ -408,7 +415,8 @@ public class CargoMain extends JFrame {
 
 	public CargoMain() throws IOException {
 		initTesseract();
-		
+		getHwnd();
+		getInfoCount();
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
