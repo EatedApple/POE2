@@ -21,11 +21,13 @@ import java.net.Socket;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -123,7 +125,8 @@ public class CargoMain extends JFrame {
 	static HWND ____TwNumEdit_total_price; // 합계
 	static HWND ____TEdit5_more_infomation; // 추가정보
 	static HWND ____TMemo; // 화물정보
-
+    static HWND __TwDateEdit_end; // 종료일
+    static HWND __TwDateEdit_start; // 시작일
 	
 	static HWND ____TCheckBox_alone; // 독차
 	static HWND ____TCheckBox_mixup; // 혼적
@@ -136,6 +139,7 @@ public class CargoMain extends JFrame {
 	String loadAddr;
 	String alightAddr;
     private HWND ___TRzGridPanel1;
+    private HWND __TAdvGlowButton;
 	static String title = "CapturePrice";
 
 	public static void main(String[] args) throws IOException {
@@ -251,8 +255,19 @@ public class CargoMain extends JFrame {
 		TfrmCargoOrder = User32.INSTANCE.FindWindowEx(MDIClient, null, "TfrmCargoOrder", null);
 		HWND _TRzPanel1 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, null, "TRzPanel", null);
 		HWND _TRzPanel2 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel1, "TRzPanel", null);
+		
+		//기간조회 2022-12-22 ~ 2022-12-22 시작일 종료일
+		__TwDateEdit_end = User32.INSTANCE.FindWindowEx(_TRzPanel2, null, "TwDateEdit", null);
+		__TwDateEdit_start = User32.INSTANCE.FindWindowEx(_TRzPanel2, __TwDateEdit_end, "TwDateEdit", null);
+		
 		HWND _TRzPanel3 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel2, "TRzPanel", null);
+		__TAdvGlowButton = User32.INSTANCE.FindWindowEx(_TRzPanel3, null, null, "조회(F2)");
+		
 		HWND _TRzPanel4 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel3, "TRzPanel", null);
+		HWND _TRzPanel5 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel4, "TRzPanel", null);
+		if (_TRzPanel5 != null) {
+		    _TRzPanel4 = _TRzPanel5;
+		}
 		
 		HWND __TRzPanel1 = User32.INSTANCE.FindWindowEx(_TRzPanel4, null, "TRzPanel", null);
 		___TRzGridPanel1 = User32.INSTANCE.FindWindowEx(__TRzPanel1, null, "TRzGridPanel", null);
@@ -331,15 +346,46 @@ public class CargoMain extends JFrame {
 		}
 	}
 	
-	public String getInfoCount() {
-        btnClick(__NewTAdvGlowButton);
+	public void setStartEndDate() {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            String today = LocalDate.now().format(formatter);
+            
+            btnClick(__NewTAdvGlowButton);
+            Thread.sleep(1000);
+            btnClick(__TwDateEdit_start, MakeWParam(18, 10));
+            Thread.sleep(100);
+            User32.INSTANCE.SendMessage(__TwDateEdit_start, WM_KILLFOCUS, 0, 0);
+            Thread.sleep(100);
+            sendChar(__TwDateEdit_start, today);
+            
+            Thread.sleep(100);
+            btnClick(__TwDateEdit_end, MakeWParam(18, 10));
+            Thread.sleep(100);
+            User32.INSTANCE.SendMessage(__TwDateEdit_end, WM_KILLFOCUS, 0, 0);
+            Thread.sleep(100);
+            sendChar(__TwDateEdit_end, today);
+            Thread.sleep(100);
+            
+            btnClick(__TAdvGlowButton);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+	}
+	
+	private void btnClick(HWND hwnd, int makeWParam) {
+        User32.INSTANCE.PostMessage(hwnd, WM_LBUTTONDOWN, MK_LBUTTON, makeWParam);
+        User32.INSTANCE.PostMessage(hwnd, WM_LBUTTONUP, MK_LBUTTON, makeWParam);
+    }
+
+    public String getInfoCount() {
+        setStartEndDate();
         try {
             Thread.sleep(2000);
             final BufferedImage priceImg = capture(___TRzGridPanel1, 1);
             String ocr = OCR(priceImg);
-            System.out.println(ocr);
             btnClick(__OldTAdvGlowButton);
-            
             return ocr;
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
@@ -362,6 +408,8 @@ public class CargoMain extends JFrame {
 
 	public CargoMain() throws IOException {
 		initTesseract();
+		getHwnd();
+		getInfoCount();
 		
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
