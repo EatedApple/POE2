@@ -266,8 +266,6 @@ public class CargoMain extends JFrame {
 	        __TAdvGlowButton = User32.INSTANCE.FindWindowEx(_TRzPanel3, null, null, "조회(F2)");
 	    }
 		
-		System.out.println(__TAdvGlowButton);
-		
 		HWND _TRzPanel4 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel3, "TRzPanel", null);
 		HWND _TRzPanel5 = User32.INSTANCE.FindWindowEx(TfrmCargoOrder, _TRzPanel4, "TRzPanel", null);
 		if (_TRzPanel5 != null) {
@@ -283,7 +281,8 @@ public class CargoMain extends JFrame {
 		TfrmCargoOrderOld = User32.INSTANCE.FindWindowEx(MDIClient, null, "TfrmCargoOrderOld", null);
 		HWND _TPanel1 = User32.INSTANCE.FindWindowEx(TfrmCargoOrderOld, null, "TPanel", null);
 		HWND _TPanel2 = User32.INSTANCE.FindWindowEx(TfrmCargoOrderOld, _TPanel1, "TPanel", null);
-		HWND __TPanel3 = User32.INSTANCE.FindWindowEx(_TPanel2, null, "TPanel", null);
+		HWND __TPanel = User32.INSTANCE.FindWindowEx(_TPanel2, null, "TPanel", null);
+		HWND ___TPanel1 = User32.INSTANCE.FindWindowEx(__TPanel, null, "TPanel", null);
 
 		HWND __TXiPanel1 = User32.INSTANCE.FindWindowEx(_TPanel2, null, "TXiPanel", null);
 		___TBitBtn_search_btn = User32.INSTANCE.FindWindowEx(__TXiPanel1, null, null, "검색");
@@ -295,27 +294,28 @@ public class CargoMain extends JFrame {
 
 		HWND __TXiPanel2 = User32.INSTANCE.FindWindowEx(_TPanel2, __TXiPanel1, "TXiPanel", null);
 		___TBitBtn_newBtn = User32.INSTANCE.FindWindowEx(__TXiPanel2, null, null, "신규(F3)");
+		
 
 		___TBitBtn_registBtn = User32.INSTANCE.FindWindowEx(__TXiPanel2, null, null, "화물등록");
 
-		HWND __TPanel4 = User32.INSTANCE.FindWindowEx(_TPanel2, __TPanel3, "TPanel", null);
-
-		HWND ___TPanel4_1 = User32.INSTANCE.FindWindowEx(__TPanel4, null, "TPanel", null);
-
-		HWND ____TXiPanel = User32.INSTANCE.FindWindowEx(___TPanel4_1, null, null, "상차방법");
-		HWND ____TPanel1 = User32.INSTANCE.FindWindowEx(___TPanel4_1, ____TXiPanel, "TPanel", null);
+		HWND ____TXiPanel = User32.INSTANCE.FindWindowEx(___TPanel1, null, null, "상차방법");
+		HWND ____TPanel1 = User32.INSTANCE.FindWindowEx(___TPanel1, ____TXiPanel, "TPanel", null);
 		____TCheckBox_reserved = User32.INSTANCE.FindWindowEx(____TPanel1, null, null, "예약");
-		//
+		
+		System.out.println("____TCheckBox_reserved" + ____TCheckBox_reserved);
 
-		HWND ____TPanel2 = User32.INSTANCE.FindWindowEx(___TPanel4_1, ____TPanel1, "TPanel", null);
+		HWND ____TPanel2 = User32.INSTANCE.FindWindowEx(___TPanel1, ____TPanel1, "TPanel", null);
 		____TCheckBox_alone = User32.INSTANCE.FindWindowEx(____TPanel2, null, null, "독차");
 		____TCheckBox_mixup = User32.INSTANCE.FindWindowEx(____TPanel2, null, null, "혼적");
+		
 
-		___TPanel5 = User32.INSTANCE.FindWindowEx(__TPanel4, ___TPanel4_1, "TPanel", null);
+        ___TPanel5 = User32.INSTANCE.FindWindowEx(__TPanel, ___TPanel1, "TPanel", null);
+        
+        System.out.println(___TPanel5);
+
 		___TRzPanel = User32.INSTANCE.FindWindowEx(___TPanel5, null, "TRzPanel", null);
-
 		____TDBGrid = User32.INSTANCE.FindWindowEx(___TRzPanel, null, "TDBGrid", null);
-
+	
 		____TEdit1 = User32.INSTANCE.FindWindowEx(___TPanel5, null, "TEdit", null); // 하차지 동읍리
 		____TEdit2 = User32.INSTANCE.FindWindowEx(___TPanel5, ____TEdit1, "TEdit", null); // 상차지 동읍리
 		____TEdit3 = User32.INSTANCE.FindWindowEx(___TPanel5, ____TEdit2, "TEdit", null); // 하차지 시군
@@ -343,7 +343,7 @@ public class CargoMain extends JFrame {
 		____TwNumEdit_commission = User32.INSTANCE.FindWindowEx(___TPanel5, ____TwNumEdit_total_price, "TwNumEdit",
 				null);
 		____TMemo = User32.INSTANCE.FindWindowEx(___TPanel5, null, "TMemo", null);
-
+	        
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -416,7 +416,6 @@ public class CargoMain extends JFrame {
 	public CargoMain() throws IOException {
 		initTesseract();
 		getHwnd();
-		getInfoCount();
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -594,6 +593,10 @@ public class CargoMain extends JFrame {
 			closeSearchAddrWindow();
 			User32.INSTANCE.SendMessage(___TBitBtn_newBtn, (int) BM_CLICK, 0, 0); // 신규(F3) 누르기
 			Thread.sleep(100);
+			
+			System.out.println("____TEdit9_startAddr " + ____TEdit9_startAddr);
+			System.out.println("____TDBGrid" + ____TDBGrid);
+			System.out.println(____TEdit7_endAddr);
 
 			User32.INSTANCE.SendMessage(____TEdit9_startAddr, WM_SETFOCUS, 0, 0); // 상차지 포커스
 			Thread.sleep(100);
@@ -678,15 +681,15 @@ public class CargoMain extends JFrame {
                 }
 			}
 
-			// if (info.reserved.contains("예약")) {
-			// 	if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
-			// 		User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
-			// 	}
-			// } else {
-			// 	if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_CHECKED) {
-			// 		User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
-			// 	}
-			// }
+			 if (info.reserved.contains("예약")) {
+			 	if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_UNCHECKED) {
+			 		User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
+			 	}
+			 } else {
+			 	if (User32.INSTANCE.SendMessage(____TCheckBox_reserved, BM_GETCHECK, 0, 0) == BST_CHECKED) {
+			 		User32.INSTANCE.PostMessage(____TCheckBox_reserved, (int) BM_CLICK, 0, 0);
+			 	}
+			 }
 			setTonCar(info);
 			
 			// 화물적재량
